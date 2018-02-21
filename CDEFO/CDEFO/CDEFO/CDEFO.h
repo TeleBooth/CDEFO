@@ -1,5 +1,5 @@
-#ifndef CDEFO_h
-#define CDEFO_h
+#ifndef CDEFO_H
+#define CDEFO_H
 #include <arduino/Arduino.h>
 #include <cstdint>
 #include <Adafruit_NeoPixel/Adafruit_NeoPixel.h>
@@ -11,16 +11,15 @@ class cdefo
 {
 public:
 	cdefo();
-	void led(int r, int g, int b, int pattern);
-	void visit_website(char url[]);
-	void play_spotify(char song[]);
-	void play_video(char location[]);
-	void record_audio(char location[]);
-	void play_audio(char location[]);
-	Adafruit_NeoPixel strip;
+	static void led(Adafruit_NeoPixel strip, int r, int g, int b, int pattern);
+	static void visit_website(char url[]);
+	static void play_spotify(char song[]);
+	static void play_video(char location[]);
+	static void record_audio(char location[]);
+	static void play_audio(char location[]);
 
 private:
-	void chase(uint32_t c); //RGB lighting patterns
+	static void chase(Adafruit_NeoPixel strip, uint32_t c); //RGB lighting patterns
 };
 
 #endif
