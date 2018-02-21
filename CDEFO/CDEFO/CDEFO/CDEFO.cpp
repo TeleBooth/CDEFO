@@ -3,13 +3,6 @@
 
 cdefo::cdefo() = default;
 
-void cdefo::led(Adafruit_NeoPixel strip, int r, int g, int b, int pattern)
-{
-	chase(strip, Adafruit_NeoPixel::Color(r, 0, 0)); // Red
-	chase(strip, Adafruit_NeoPixel::Color(0, g, 0)); // Green
-	chase(strip, Adafruit_NeoPixel::Color(0, 0, b)); // Blue
-}
-
 void cdefo::visit_website(char url[])
 {
 
