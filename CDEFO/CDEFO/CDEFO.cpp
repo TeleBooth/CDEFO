@@ -25,7 +25,7 @@ void cdefo::play_audio(char location[])
 {
 }
 
-void cdefo::chase(Adafruit_NeoPixel strip, uint32_t c)
+void cdefo::chase(Adafruit_NeoPixel *strip, uint32_t c)
 {
 	for (uint16_t i = 0; i < strip.numPixels() + 4; i++)
 	{

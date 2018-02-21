@@ -10,7 +10,7 @@ class cdefo
 {
 public:
 	cdefo();
-	static void chase(Adafruit_NeoPixel strip, uint32_t c); //RGB lighting patterns
+	static void chase(Adafruit_NeoPixel *strip, uint32_t c); //RGB lighting patterns
 	static void visit_website(char url[]);
 	static void play_spotify(char song[]);
 	static void play_video(char location[]);
