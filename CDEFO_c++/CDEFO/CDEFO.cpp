@@ -9,7 +9,6 @@ void cdefo::start_lights(Adafruit_NeoPixel* strip)
 	{
 		strip->setPixelColor(i, def_mood); // Draw new pixel
 		strip->show();
-		i++;
 	}
 }
 
