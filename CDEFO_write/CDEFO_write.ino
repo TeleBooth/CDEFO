@@ -19,7 +19,7 @@ void loop() {
     Serial.println("\nPlace an NFC Tag that you want to Record these Messages on!"); // Command for the Serial Monitor
     if (nfc.tagPresent()) {
         NdefMessage message = NdefMessage();
-        message.addTextRecord(":L:");
+        message.addTextRecord(":L:CRGB;");
         message.addTextRecord("Foo Fighters :S:");
         message.addTextRecord(":W:https://github.com/TeleBooth/CDEFO:We:");
         message.addTextRecord(":Stop:");

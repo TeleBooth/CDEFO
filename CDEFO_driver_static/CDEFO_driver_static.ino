@@ -10,12 +10,13 @@ PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);  // Indicates the Shield you are using
 
 //ANALOG PINS 4 AND 5 ARE BEING USED CURRENTLY
-//DIGITAL PINS 2 AND 6 ARE BEING USED CURRENTLYS
+//DIGITAL PINS 2 AND 6 ARE BEING USED CURRENTLY
 
 void setup() {
   Serial.begin(9600);
   nfc.begin();
   mood.begin();
+  cdefo::start_lights(&mood);
 }
 
 void loop()

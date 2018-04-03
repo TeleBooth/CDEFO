@@ -1,66 +1,71 @@
-    #include <Adafruit_NeoPixel.h>
-    #include <CDEFO.h>
-    #include <Wire.h>
-    #include <PN532_I2C.h>
-    #include <PN532.h>   // The following files are included in the libraries Installed
-    #include <NfcAdapter.h>
-     
-    Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_LEDS, PIN, NEO_GRB + NEO_KHZ800);
-    PN532_I2C pn532_i2c(Wire);
-    NfcAdapter nfc = NfcAdapter(pn532_i2c);  // Indicates the Shield you are using
-     
-    void setup() {
-      Serial.begin(9600);
-      nfc.begin();
-      strip.begin();
-    }
-     
-    void loop() {
-      if (nfc.tagPresent())
-        {
-          Serial.println("tag is found");
-          NfcTag tag = nfc.read();
-          if (tag.hasNdefMessage()) // If your tag has a message
-            {
-              NdefMessage message = tag.getNdefMessage();
-               
-              // If you have more than 1 Message then it wil cycle through them
-              int recordCount = message.getRecordCount();
-              for (int i = 0; i < recordCount; i++)
-                {
-                  NdefRecord record = message.getRecord(i);
+#include <Adafruit_NeoPixel.h>
+#include <CDEFO.h>
+#include <Wire.h>
+#include <PN532_I2C.h>
+#include <PN532.h>   // The following files are included in the libraries Installed
+#include <NfcAdapter.h>
+#include <TimedAction.h> // for multithreading
 
-                  int payloadLength = record.getPayloadLength();
-                  byte payload[payloadLength];
-                  record.getPayload(payload);
+//ANALOG PINS 4 AND 5 ARE BEING USED CURRENTLY
+//DIGITAL PINS 2 AND 6 ARE BEING USED CURRENTLYS
+PN532_I2C pn532_i2c(Wire);
+NfcAdapter nfc = NfcAdapter(pn532_i2c);  // Indicates the Shield you are using
 
-                  String payloadAsString = ""; // Processes the message as a string vs as a HEX value
-                  for (int c = 3; c < payloadLength; c++) 
-                    {
-                      payloadAsString += (char)payload[c];
-                      //Serial.print((char)payloadAsString[c]);
-                    }
-                  if (payloadAsString.indexOf(":Stop:") != -1)
-                    {
-                      cdefo::stop(&nfc);
-                    }
-                  if (payloadAsString.indexOf(":L:") != -1)
-                    {
-                      cdefo::chase(&strip, strip.Color(255, 255, 255));
-                      cdefo::chase(&strip, strip.Color(0, 255, 0));
-                      cdefo::chase(&strip, strip.Color(0, 0, 255));
-                    }
-                  if (payloadAsString.indexOf(":W:") != -1)
-                    {
-                      cdefo::visit_website(payloadAsString);
-                    }
-                  if (payloadAsString.indexOf(":S:") != -1)
-                    {
-                      cdefo::play_spotify(payloadAsString);
-                    }
-                }
-          }
+void setup() {
+  Serial.begin(9600);
+  nfc.begin();
+
+}
+
+void loop() {
+  if (nfc.tagPresent())
+  {
+    Serial.println("tag is found");
+    NfcTag tag = nfc.read();
+    cdefo driver = cdefo(&tag);
+    Serial.println("cdefo is created");
+    while (nfc.tagPresent())
+    {
+      Serial.println("Tag still present");
+      Serial.println(driver.get_current_payload());
+      if (driver.get_current_payload().equals(""))
+      {
+        Serial.println("\"\" equals" + driver.get_current_payload());
+        Serial.println("got the ndef");
+        driver.read_ndef(); //read the next message
       }
-      delay(3000);
-      Serial.println("place a tag.");
+      if (driver.get_current_payload().indexOf(":Stop:") != -1)
+      {
+        Serial.println("Blocking");
+        driver.stop(&nfc);
+        Serial.println("Stopped Blocking");
+      }
+      
+      if (driver.get_current_payload().indexOf(":L;") != -1)
+      {
+        Serial.println("Running lights");
+        driver.mood_script(driver.get_current_payload());
+        driver.drive_lights();
+        driver.reset_payload();
+      }
+      
+      if (driver.get_current_payload().indexOf(":W:") != -1)
+      {
+        Serial.println("Visiting Website");
+        driver.visit_website(driver.get_current_payload());
+        driver.reset_payload();
+      }
+
+      if (driver.get_current_payload().indexOf(":S:") != -1)
+      {
+        Serial.println("Playing Spotify");
+        driver.play_spotify(driver.get_current_payload());
+        driver.reset_payload();
+      }
+    }
+    delay(200);
+    Serial.println("Tag still present after blocking4");
   }
+  Serial.println("place a tag.");
+}
+
