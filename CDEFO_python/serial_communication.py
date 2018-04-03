@@ -1,17 +1,39 @@
 import serial
-from time import sleep
 import webbrowser
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pprint
-import json
+import sounddevice as sd
+import soundfile as sf
+import numpy
 
-ser = serial.Serial(
-    port='COM3',
-    baudrate=9600
-)
+import tempfile
+import queue
+import sys
+
+# ser = serial.Serial(
+#     port='COM3',
+#     baudrate=9600
+# )
 
 out = ""
+
+# default samplerate and channels
+sd.default.samplerate = 44100
+sd.default.channels = 2
+
+device_info = sd.query_devices(1, 'input')
+
+q = queue.Queue()
+
+#used for recording to the soundfile
+def callback(indata, frames, time, status):
+    """This is called (from a separate thread) for each audio block."""
+    if status:
+        print(status, file=sys.stderr)
+    q.put(indata.copy())
+
+
 
 #Spotify credentials
 client_credentials_manager = SpotifyClientCredentials(client_id='0f65027d2c8e42bc9499eb12e885cb62',
@@ -19,8 +41,8 @@ client_credentials_manager = SpotifyClientCredentials(client_id='0f65027d2c8e42b
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 while 1:
-    out = ser.read().decode("utf-8")
-    #out = input('Enter you input:')
+    #out = ser.read().decode("utf-8")
+    out = input('Enter your input:')
 
     if "Firmware ver. 1.6" in out:
         print(out, flush=True)
@@ -49,8 +71,26 @@ while 1:
         print(out.replace(":S:", ""))
         result = sp.search(out.replace(":S:", ""))
         for key in result['tracks']['items']:
-            pprint.pprint(key['album']['external_urls'], depth = 1)
-        #pprint.pprint(result, depth=4)
+            pprint.pprint(key['name'], depth = 1)
+            pprint.pprint(key['external_urls']['spotify'])
+
+        trim = result['tracks']['items'][0]['external_urls']['spotify']
+        webbrowser.open(trim.replace("'", ""), new=0, autoraise=True)
+
+        out = ""
+
+    if ":R:" in out:
+        duration = [int(s) for s in out.split(":") if s.isdigit()]
+        print("Recording for " + str(duration[0]) + " seconds.")
+        recording = sd.rec(int(duration[0] * 44100))
+        sd.wait()
+        print("Finished")
+        out = ""
+
+        with sf.SoundFile("CDEFO.wav", mode='x', samplerate = 44100, channels = 2, subtype = "PCM_24") as file:
+            file.write(recording)
+
+
 
     if ":Stop:" in out:
         print(out.replace(":Stop:",""))
