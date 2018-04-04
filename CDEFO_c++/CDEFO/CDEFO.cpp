@@ -1,7 +1,9 @@
-#include "CDEFO.h"
+﻿#include "CDEFO.h"
 
 
 cdefo::cdefo() = default;
+
+uint16_t cdefo::thresholds[] = {1529, 1019, 764, 764, 764, 1274 };
 
 void cdefo::start_lights(Adafruit_NeoPixel* strip)
 {
@@ -56,10 +58,12 @@ void cdefo::play_video(char* location)
 
 void cdefo::record_audio(char* location)
 {
+	Serial.println(location);
 }
 
 void cdefo::play_audio(char* location)
 {
+	Serial.println(location);
 }
 
 void cdefo::light_script(char* script, char*** mini, int* light_number)
@@ -91,6 +95,85 @@ void cdefo::light_script(char* script, char*** mini, int* light_number)
 		//move the pointer along
 		script++;
 	}
+}
+
+void cdefo::drive_eq(Adafruit_NeoPixel * strand, EQ *eq)
+{
+	eq->volume = analogRead(AUDIO_PIN);       //Record the volume level from the sound detector
+
+	//This is where "gradient" is modulated to prevent overflow.
+	if (eq->gradient > thresholds[eq->palette]) {
+		eq->gradient %= thresholds[eq->palette] + 1;
+
+		//Everytime a palette gets completed is a good time to readjust "maxVol," just in case
+		//  the song gets quieter; we also don't want to lose brightness intensity permanently
+		//  because of one stray loud sound.
+	}
+
+	//If there is a decent change in volume since the last pass, average it into "avgBump"
+	if (eq->volume - eq->last > 10)
+		eq->avgBump = (eq->avgBump + (eq->volume - eq->last)) / 2.0;
+
+	//If there is a notable change in volume, trigger a "bump"
+	//  avgbump is lowered just a little for comparing to make the visual slightly more sensitive to a beat.
+	eq->bump = (eq->volume - eq->last > eq->avgBump * .9);
+
+	pulse(strand, eq);   //Calls the appropriate visualization to be displayed with the globals as they are.
+
+	(eq->gradient)++;    //Increments gradient
+
+	eq->last = eq->volume; //Records current volume for next pass
+
+}
+
+void cdefo::pulse(Adafruit_NeoPixel *strand, EQ *eq)
+{
+		fade(strand, 0.85);   //Listed below, this function simply dims the colors a little bit each pass of loop()
+
+					  //Advances the palette to the next noticeable color if there is a "bump"
+		if (eq->bump)
+			eq->gradient += thresholds[eq->palette] / 24;
+
+		//If it's silent, we want the fade effect to take over, hence this if-statement
+		if (eq->volume > 0) {
+			uint32_t col = Rainbow(strand, &(eq->gradient)); //Our retrieved 32-bit color
+
+											
+			double newVol = smoothVol(eq->last, eq->volume);
+			//These variables determine where to start and end the pulse since it starts from the middle of the strand.
+			//  The quantities are stored in variables so they only have to be computed once (plus we use them in the loop).
+			int start = LED_HALF - (LED_HALF * (newVol / eq->maxVol));
+			int finish = LED_HALF + (LED_HALF * (newVol / eq->maxVol)) + strand->numPixels() % 2;
+			//Listed above, LED_HALF is simply half the number of LEDs on your strand. ↑ this part adjusts for an odd quantity.
+
+			for (int i = start; i < finish; i++) {
+				//      for (int i = 0; i < strip.numPixels() / 2, i++) {
+
+				//"damp" creates the fade effect of being dimmer the farther the pixel is from the center of the strand.
+				//  It returns a value between 0 and 1 that peaks at 1 at the center of the strand and 0 at the ends.
+				float damp = sin((i - start) * PI / float(finish - start));
+
+				//Squaring damp creates more distinctive brightness.
+				damp = pow(damp, 2.0);
+
+				//This is the only difference from Pulse(). The color for each pixel isn't the same, but rather the
+				//  entire gradient fitted to the spread of the pulse, with some shifting from "gradient".
+				int val = thresholds[eq->palette] * (i - start) / (finish - start);
+				val += eq->gradient;
+
+				uint32_t col2 = strand->getPixelColor(i);
+				uint8_t colors[3];
+				float avgCol = 0, avgCol2 = 0;
+				for (int k = 0; k < 3; k++) {
+					colors[k] = split(&col, k) * damp * pow(eq->volume / eq->maxVol, 2);
+					avgCol += colors[k];
+					avgCol2 += split(&col2, k);
+				}
+				avgCol /= 3.0, avgCol2 /= 3.0;
+				if (avgCol > avgCol2) strand->setPixelColor(i, strand->Color(colors[0], colors[1], colors[2]));
+			}
+		}
+		strand->show();
 }
 
 void cdefo::drive_lights(Adafruit_NeoPixel* strip, char** mini, int* light_number)
@@ -195,6 +278,58 @@ void cdefo::chase(Adafruit_NeoPixel* strip, uint32_t* c)
 	}
 }
 
+double cdefo::smoothVol(uint8_t last, uint8_t volume)
+{
+	double oldVol = last;
+	double newVol = volume;
+	if (oldVol < newVol)
+	{
+		newVol = (newVol * RISE_RATE) + (oldVol * (1 - RISE_RATE));
+		// limit how quickly volume can rise from the last value
+	}
+
+	else
+	{
+		newVol = (newVol * FALL_RATE) + (oldVol * (1 - FALL_RATE));
+		// limit how quickly volume can fall from the last value
+	}
+
+	return newVol;
+}
+
+uint8_t cdefo::split(uint32_t * color, uint8_t i)
+{
+
+	//0 = Red, 1 = Green, 2 = Blue
+
+	if (i == 0) return *color >> 16;
+	if (i == 1) return *color >> 8;
+	if (i == 2) return *color >> 0;
+	return -1;
+}
+
+void cdefo::fade(Adafruit_NeoPixel *strand, double damper)
+{
+	//"damper" must be between 0 and 1, or else you'll end up brightening the lights or doing nothing.
+
+	for (int i = 0; i < strand->numPixels(); i++) {
+
+		//Retrieve the color at the current position.
+		uint32_t col = strand->getPixelColor(i);
+
+		//If it's black, you can't fade that any further.
+		if (col == 0) continue;
+
+		float colors[3]; //Array of the three RGB values
+
+						 //Multiply each value by "damper"
+		for (int j = 0; j < 3; j++) colors[j] = split(&col, j) * damper;
+
+		//Set the dampened colors back to their spot.
+		strand->setPixelColor(i, strand->Color(colors[0], colors[1], colors[2]));
+	}
+}
+
 //The lights breathe, but it fades towards the edges
 void cdefo::breathe(Adafruit_NeoPixel* strip, uint32_t* c)
 {
@@ -248,6 +383,19 @@ void cdefo::breathe(Adafruit_NeoPixel* strip, uint32_t* c)
 			scale /= BREATHE_SCALE;
 		}
 	}
+}
+
+uint32_t cdefo::Rainbow(Adafruit_NeoPixel *strand, unsigned int *i) {
+	if (*i > 1529) {
+		unsigned int datain = *i % 1530;
+		return Rainbow(strand, &datain);
+	}
+	if (*i > 1274) return strand->Color(255, 0, 255 - (*i % 255));   //violet -> red
+	if (*i > 1019) return strand->Color((*i % 255), 0, 255);         //blue -> violet
+	if (*i > 764) return strand->Color(0, 255 - (*i % 255), 255);    //aqua -> blue
+	if (*i > 509) return strand->Color(0, 255, (*i % 255));          //green -> aqua
+	if (*i > 255) return strand->Color(255 - (*i % 255), 255, 0);    //yellow -> green
+	return strand->Color(255, *i, 0);                               //red -> yellow
 }
 
 
