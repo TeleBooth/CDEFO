@@ -7,11 +7,34 @@
 #include <PN532_I2C.h>
 #include <PN532.h>   // The following files are included in the libraries Installed
 
-#define PIN      6
+#define PIN      12
+#define MUSIC_PIN 6
 #define N_LEDS 30
 #define CHASE_INTERVAL 30
 #define BREATHE_INTERVAL 75
 #define BREATHE_SCALE 1.10
+
+#define RISE_RATE     0.13    //(0 to 1) higher values mean livelier display
+#define FALL_RATE 0.04 //(0 to 1) higher values mean livelier display
+
+#define AUDIO_PIN A0  //Pin for the envelope of the sound detector
+#define LED_TOTAL 60  //Change this to the number of LEDs in your strand.
+#define LED_HALF  LED_TOTAL/2
+
+//Structures
+typedef struct {
+	uint16_t gradient; //Used to iterate and loop through each color palette gradually
+
+	float maxVol;    //Holds the largest volume recorded thus far to proportionally adjust the visual's responsiveness.
+	float avgBump;    //Holds the "average" volume-change to trigger a "bump."
+
+	uint8_t volume;   //Holds the volume level read from the sound detector.
+	uint8_t last;     //Holds the value of volume from the previous loop() pass.
+
+	uint8_t palette;  //Holds the current color palette.
+
+	bool bump;     //Used to pass if there was a "bump" in volume
+} EQ;
 
 class cdefo
 {
@@ -34,10 +57,20 @@ public:
 	static void drive_lights(Adafruit_NeoPixel* strip, char** mini, int* light_number);
 	static void light_script(char* script, char*** mini, int *light_number);
 
+	//EQ method
+	static void drive_eq(Adafruit_NeoPixel* strand, EQ *eq);
+	static void pulse(Adafruit_NeoPixel *strand, EQ *eq);
+
 	//Write methods
 	static void write_records(NfcAdapter* nfc);
 
 private:
+
+	//EQ helpers
+	static double smoothVol(uint8_t last, uint8_t volume);
+	static uint8_t split(uint32_t *color, uint8_t i);
+	static void fade(Adafruit_NeoPixel *strand, double damper);
+	static uint32_t Rainbow(Adafruit_NeoPixel *strand, unsigned int *i);
 
 	//LED Patterns
 	static void breathe(Adafruit_NeoPixel *strip, uint32_t* c);
@@ -45,6 +78,7 @@ private:
 
 	//default color that the strips will use when starting up, written as a packed 32-bit int
 	static const uint32_t def_mood = ((uint32_t)5 << 16) | ((uint32_t)5 << 8) | 20;
+	static uint16_t thresholds[6];
 };
 
 #endif
