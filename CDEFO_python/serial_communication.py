@@ -7,14 +7,12 @@ import sounddevice as sd
 import soundfile as sf
 import numpy
 
-import tempfile
-import queue
 import sys
 
-# ser = serial.Serial(
-#     port='COM3',
-#     baudrate=9600
-# )
+ser = serial.Serial(
+    port='COM3',
+    baudrate=9600
+)
 
 out = ""
 
@@ -22,9 +20,7 @@ out = ""
 sd.default.samplerate = 44100
 sd.default.channels = 2
 
-device_info = sd.query_devices(1, 'input')
-
-q = queue.Queue()
+recording = []
 
 #used for recording to the soundfile
 def callback(indata, frames, time, status):
@@ -41,8 +37,9 @@ client_credentials_manager = SpotifyClientCredentials(client_id='0f65027d2c8e42b
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 while 1:
-    #out = ser.read().decode("utf-8")
-    out = input('Enter your input:')
+    out = ser.readline().decode("utf-8")
+    #out = input('Enter your input:')
+    #print(ser.read().decode("utf-8"))
 
     if "Firmware ver. 1.6" in out:
         print(out, flush=True)
@@ -76,7 +73,6 @@ while 1:
 
         trim = result['tracks']['items'][0]['external_urls']['spotify']
         webbrowser.open(trim.replace("'", ""), new=0, autoraise=True)
-
         out = ""
 
     if ":R:" in out:
@@ -90,9 +86,9 @@ while 1:
         with sf.SoundFile("CDEFO.wav", mode='x', samplerate = 44100, channels = 2, subtype = "PCM_24") as file:
             file.write(recording)
 
-
+    if ":P:" in out:
+        sd.play(recording)
 
     if ":Stop:" in out:
         print(out.replace(":Stop:",""))
         out = ""
-
