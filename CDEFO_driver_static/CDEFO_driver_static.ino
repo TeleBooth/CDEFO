@@ -4,16 +4,17 @@
 #include <PN532_I2C.h>
 #include <PN532.h>   // The following files are included in the libraries Installed
 #include <NfcAdapter.h>
-#include <TimedAction.h>
+#include <LEDTimedAction.h>
 
 Adafruit_NeoPixel mood = Adafruit_NeoPixel(N_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel music = Adafruit_NeoPixel(LED_TOTAL, MUSIC_PIN, NEO_GRB + NEO_KHZ800);
 PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);  // Indicates the Shield you are using
-//EQ structure
-EQ eq;
-//EQ thread
-TimedAction eq_driver = TimedAction(30, cdefo::drive_eq, &music, &eq);
+//LED structure
+LED led;
+//LED thread
+LEDTimedAction eq_driver = LEDTimedAction(20, cdefo::drive_eq, &music, &led);
+LEDTimedAction mood_driver = LEDTimedAction(5, cdefo::drive_lights, &mood, &led);
 //ANALOG PINS 0, 4, AND 5 ARE BEING USED CURRENTLY
 //DIGITAL PINS 2, 6, AND 12 ARE BEING USED CURRENTLY
 
@@ -27,29 +28,36 @@ void setup() {
 
   delay(100);
   
-  //initialize the EQ structure
-  eq.gradient = 0; //Used to iterate and loop through each color palette gradually
-  eq.maxVol = 100;    //Holds the largest volume recorded thus far to proportionally adjust the visual's responsiveness.
-  eq.avgBump = 0;    //Holds the "average" volume-change to trigger a "bump."
-  eq.volume = 0;   //Holds the volume level read from the sound detector.
-  eq.last = 0;     //Holds the value of volume from the previous loop() pass.
-  eq.palette = 0;  //Holds the current color palette.
-  eq.bump = false;     //Used to pass if there was a "bump" in volume
+  //initialize the LED structure
+  led.gradient = 0; //Used to iterate and loop through each color palette gradually
+  led.maxVol = 100;    //Holds the largest volume recorded thus far to proportionally adjust the visual's responsiveness.
+  led.avgBump = 0;    //Holds the "average" volume-change to trigger a "bump."
+  led.volume = 0;   //Holds the volume level read from the sound detector.
+  led.last = 0;     //Holds the value of volume from the previous loop() pass.
+  led.palette = 0;  //Holds the current color palette.
+  led.bump = false;     //Used to pass if there was a "bump" in volume
+  led.light_number = 0;
+  led.light2_pointer = 1;
+  led.light_pointer = 0;
+  led.c = 0;
+  led.finish = 0;
+  led.finish2 = 1;
+  led.led_pointer = 0;
+  led.scale = BREATHE_SCALE;
+  
   eq_driver.disable();
+  mood_driver.disable();
 }
 
 void loop()
 {
-  //eq_driver.check();
-  if (nfc.tagPresent())
+    if (nfc.tagPresent())
   {
     Serial.println("tag is found");
     NfcTag tag = nfc.read();
     //2-d character array that will store the lighting scripts
     //4 possible lighting patterns = 4 wide 2-d array
-    char **mini = (char **)malloc(sizeof(char *) * 4);
-    //stores the number of different lighting scripts
-    int light_number = 0;
+    led.mini = (char **)malloc(sizeof(char *) * 4);
 
     //string array storing all of the payloads on the chip
     char **payloads;
@@ -64,16 +72,20 @@ void loop()
       //:Stop:
       if (payloads[i][2] == 't')
       {
+        //used to check whether or not the NFC tag is still present for latency sake
         int j = 0;
         unsigned long nfcTimerCurr = 0;
         unsigned long nfcTimerPrev = 0;
         eq_driver.enable();
         eq_driver.reset();
+        mood_driver.enable();
+        mood_driver.reset();
         while (!j)
         {
           nfcTimerCurr = millis();
           //cdefo::drive_lights(&mood, mini, &light_number);
           eq_driver.check();
+          mood_driver.check();
           //cdefo::drive_eq(&music, &eq);
           if(nfcTimerCurr - nfcTimerPrev > 10000) {
             if(!nfc.tagPresent()){
@@ -87,7 +99,7 @@ void loop()
       //:L:
       if (payloads[i][1] == 'L')
       {
-        cdefo::light_script(payloads[i], &mini, &light_number);
+        cdefo::light_script(payloads[i], &led);
       }
 
       //:W: URL :WE:
@@ -114,9 +126,9 @@ void loop()
     }
     //FREE THE ALLOCATED MEMORY/CLEANUP
     //free the mini lighting script
-    for (int i = 0; i < light_number; i++)
+    for (int i = 0; i < led.light_number; i++)
     {
-      free(mini[i]);
+      free(led.mini[i]);
     }
 
     //free the payloads
@@ -126,5 +138,16 @@ void loop()
     }
     Serial.println("Cleanup finished");
   }
+  //eq_driver.check();
+
   Serial.println("place a tag.");
+}
+
+// Fill the dots one after the other with a color
+void colorWipe(uint32_t c, uint8_t wait) {
+  for(uint16_t i=0; i<mood.numPixels(); i++) {
+    mood.setPixelColor(i, c);
+    mood.show();
+    delay(wait);
+  }
 }

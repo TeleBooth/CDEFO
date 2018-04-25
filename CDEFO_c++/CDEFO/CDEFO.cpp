@@ -66,7 +66,7 @@ void cdefo::play_audio(char* location)
 	Serial.println(location);
 }
 
-void cdefo::light_script(char* script, char*** mini, int* light_number)
+/*void cdefo::light_script(char* script, char*** mini, int* light_number)
 {
 	//translate the script into actual lighting
 	//starts at index = 3 because of the ":L:" at the beginning
@@ -95,9 +95,40 @@ void cdefo::light_script(char* script, char*** mini, int* light_number)
 		//move the pointer along
 		script++;
 	}
+}*/
+
+void cdefo::light_script(char* script, LED *led)
+{
+	//translate the script into actual lighting
+	//starts at index = 3 because of the ":L:" at the beginning
+	script += 3;
+	//used for indexing after the 
+	int i = 0;
+	while (*script != '\0')
+	{
+		//looks for the dividing character to split up the scripts
+		if (*script == ';')
+		{
+			//dynamically allocates mini to be the right size to hold the script
+			//+ 1 for the NULL character
+			(led->mini)[led->light_number] = (char *)malloc(sizeof(char) * (i)+1);
+			//copy the proper mini string over to the 2d array
+			strncpy((led->mini)[led->light_number], (script - i), i);
+			(led->mini)[led->light_number][i] = '\0';
+
+			Serial.println((led->mini)[led->light_number]);
+			led->light_number++;
+			//reset i so there is no overlap
+			i = -1;
+		}
+		//increment the index
+		i++;
+		//move the pointer along
+		script++;
+	}
 }
 
-void cdefo::drive_eq(Adafruit_NeoPixel * strand, EQ *eq)
+void cdefo::drive_eq(Adafruit_NeoPixel * strand, LED *eq)
 {
 	eq->volume = analogRead(AUDIO_PIN);       //Record the volume level from the sound detector
 
@@ -126,7 +157,7 @@ void cdefo::drive_eq(Adafruit_NeoPixel * strand, EQ *eq)
 
 }
 
-void cdefo::pulse(Adafruit_NeoPixel *strand, EQ *eq)
+void cdefo::pulse(Adafruit_NeoPixel *strand, LED *eq)
 {
 		fade(strand, 0.85);   //Listed below, this function simply dims the colors a little bit each pass of loop()
 
@@ -176,7 +207,173 @@ void cdefo::pulse(Adafruit_NeoPixel *strand, EQ *eq)
 		strand->show();
 }
 
-void cdefo::drive_lights(Adafruit_NeoPixel* strip, char** mini, int* light_number)
+void cdefo::drive_lights(Adafruit_NeoPixel* strip, LED* mood)
+{
+	//stores the next lighting pattern after the previous one is completely finished
+	if(mood->light_pointer <= mood->light_number && mood->finish)
+	{
+		if(mood->light_pointer == mood->light_number -1)
+		{
+			mood->light2_pointer = 1;
+			mood->light_pointer = 0;
+			mood->finish = 0;
+			mood->finish2 = 1;
+		}
+		else
+		{
+			mood->light2_pointer = 1;
+			//prepares to read the next line
+			mood->light_pointer++;
+			mood->finish = 0;
+		}
+	}
+
+	//actually runs the lights
+	else if(!mood->finish)
+	{
+		
+		//stores the next color after the previous color is finished
+		if (mood->finish2)
+		{
+			char c = mood->mini[mood->light_pointer][mood->light2_pointer];
+			Serial.println(c);
+			if (c == 'R')
+				//Red
+				mood->c = Adafruit_NeoPixel::Color(255, 0, 0);
+			if (c == 'G')
+				//Green
+				mood->c = Adafruit_NeoPixel::Color(0, 255, 0);
+			if (c == 'B')
+				//Blue
+				mood->c = Adafruit_NeoPixel::Color(0, 0, 255);
+			if (c == 'Y')
+				//Yellow
+				mood->c = Adafruit_NeoPixel::Color(255, 255, 0);
+			if (c == 'T')
+				//Turquoise
+				mood->c = Adafruit_NeoPixel::Color(0, 255, 255);
+			if (c == 'P')
+				//Purple
+				mood->c = Adafruit_NeoPixel::Color(255, 0, 255);
+			if (c == 'W')
+				//White
+				mood->c = Adafruit_NeoPixel::Color(255, 255, 255);
+
+			mood->finish2 = 0;
+		}
+
+		//if it has reached the end of the line, move to the next one
+		else if (mood->mini[mood->light_pointer][mood->light2_pointer] == '\0')
+		{
+			//Serial.println(mood->mini[mood->light_pointer]);
+			mood->finish = 1;
+		}
+
+		else if (mood->mini[mood->light_pointer][0] == 'c' && !mood->finish2)
+		{
+			chase(strip, mood);
+		}
+
+		else if (mood->mini[mood->light_pointer][0] == 'b' && !mood->finish2)
+		{
+			breathe(strip, mood);
+		}
+	}
+}
+
+void cdefo::chase(Adafruit_NeoPixel* strip, LED* mood)
+{
+	//here for ease, might need to remove later if memory issues arrise
+	int i = mood->led_pointer;
+	//chase out
+	if (i < (N_LEDS / 2))
+	{
+		strip->setPixelColor((N_LEDS / 2) + i, mood->c); // Draw new pixel
+		strip->setPixelColor((N_LEDS / 2) - i, mood->c);
+		if (i >= 4)
+		{
+			strip->setPixelColor((N_LEDS / 2) + i - 4, def_mood);
+			strip->setPixelColor((N_LEDS / 2) - i + 4, def_mood);
+		}
+	}
+
+	// chase in, we add N_LEDS so that it will chase in after chasing out
+	// without having to keep add another variable to keep track of whether chase out has completed
+	else if (i < N_LEDS + 4)
+	{
+		if (i < N_LEDS) //include this so that it doesn't overwrite onto the strip when it finishes
+		{
+			strip->setPixelColor(i - (N_LEDS / 2), mood->c); // Draw new pixel
+			strip->setPixelColor((3 * N_LEDS / 2) - i, mood->c);
+
+		}
+		if (i >= (N_LEDS / 2) + 4)
+		{
+			strip->setPixelColor(i - (N_LEDS / 2) - 4, def_mood); // Erase pixel a few steps back
+			strip->setPixelColor((3 * N_LEDS / 2) - i + 4, def_mood);
+		}
+	}
+
+	else
+	{
+		mood->led_pointer = -1;
+		mood->finish2 = 1;
+		mood->light2_pointer++;
+	}
+	
+	strip->show();
+	mood->led_pointer++;
+}
+
+//The lights breathe, but it fades towards the edges
+void cdefo::breathe(Adafruit_NeoPixel* strip, LED *mood)
+{
+	double scale = mood->scale;
+	//Serial.println(scale);
+	//breathe in
+	if (mood->led_pointer < (N_LEDS / 2))
+	{
+		//Serial.println("in");
+			//the pixels in between get lit
+			for(int j = mood->led_pointer; j <= N_LEDS - mood->led_pointer - 1; j++)
+			{
+				strip->setPixelColor(j, Adafruit_NeoPixel::Color((int)5 * scale, (int)5 * scale, (int)20 * scale));
+				//Serial.print(j);
+			}
+			mood->scale *= BREATHE_SCALE;
+			if (mood->led_pointer == (N_LEDS / 2) -1)
+				mood->scale /= BREATHE_SCALE;
+			//Serial.println('\n');
+	}
+
+	
+	//breathe out
+	else if (mood->led_pointer < (N_LEDS))
+	{
+		mood->scale /= BREATHE_SCALE;
+		double scale = mood->scale;
+			//the pixels in between get lit
+			for (int j = N_LEDS - (mood->led_pointer + 1); j <= mood->led_pointer; j++)
+			{
+				strip->setPixelColor(j, Adafruit_NeoPixel::Color((int)5 * scale, (int)5 * scale, (int)20 * scale));
+				//Serial.print(j);
+			}
+			//Serial.println('\n');
+	}
+
+	//reset led_pointers and breathing scale
+	else
+	{
+		mood->led_pointer = -1;
+		mood->scale = BREATHE_SCALE;
+		mood->finish2 = 1;
+		mood->light2_pointer++;
+	}
+	strip->show();
+	mood->led_pointer++;
+}
+
+/*void cdefo::drive_lights(Adafruit_NeoPixel* strip, char** mini, int* light_number)
 {
 	//process the mini script
 	for (int i = 0; i < *light_number; i++)
@@ -184,7 +381,6 @@ void cdefo::drive_lights(Adafruit_NeoPixel* strip, char** mini, int* light_numbe
 		int j = 1;
 		while (mini[i][j] != '\0')
 		{
-			//POTENTIALLY ADD MULTITHREAD METHODS HERE
 			uint32_t c = 0;
 			//Sets the color to be passed in
 			if (mini[i][j] == 'R')
@@ -216,18 +412,16 @@ void cdefo::drive_lights(Adafruit_NeoPixel* strip, char** mini, int* light_numbe
 
 			if (mini[i][0] == 'b')
 			{
-				delay(500);
 				breathe(strip, &c);
 			}
 
 			j++;
 		}
 	}
-}
-
+}*/
 
 //The lights chase each other down both ends of the strips
-void cdefo::chase(Adafruit_NeoPixel* strip, uint32_t* c)
+/*void cdefo::chase(Adafruit_NeoPixel* strip, uint32_t* c)
 {
 	int i = 0;
 	unsigned long previousMillis = 0;
@@ -276,7 +470,7 @@ void cdefo::chase(Adafruit_NeoPixel* strip, uint32_t* c)
 			i++;
 		}
 	}
-}
+}*/
 
 double cdefo::smoothVol(uint8_t last, uint8_t volume)
 {
@@ -331,7 +525,7 @@ void cdefo::fade(Adafruit_NeoPixel *strand, double damper)
 }
 
 //The lights breathe, but it fades towards the edges
-void cdefo::breathe(Adafruit_NeoPixel* strip, uint32_t* c)
+/*void cdefo::breathe(Adafruit_NeoPixel* strip, uint32_t* c)
 {
 	double scale = BREATHE_SCALE;
 	int i = 0;
@@ -383,7 +577,7 @@ void cdefo::breathe(Adafruit_NeoPixel* strip, uint32_t* c)
 			scale /= BREATHE_SCALE;
 		}
 	}
-}
+}*/
 
 uint32_t cdefo::Rainbow(Adafruit_NeoPixel *strand, unsigned int *i) {
 	if (*i > 1529) {

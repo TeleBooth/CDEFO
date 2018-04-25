@@ -23,6 +23,7 @@
 
 //Structures
 typedef struct {
+	//STRUCTURE FOR EQ
 	uint16_t gradient; //Used to iterate and loop through each color palette gradually
 
 	float maxVol;    //Holds the largest volume recorded thus far to proportionally adjust the visual's responsiveness.
@@ -34,7 +35,24 @@ typedef struct {
 	uint8_t palette;  //Holds the current color palette.
 
 	bool bump;     //Used to pass if there was a "bump" in volume
-} EQ;
+
+	//STRUCTURE FOR MOOD
+	char **mini; //used to store the lighting scripts
+
+	int light_number; //stores the number of lighting scripts to store
+	int light_pointer; //checks which script is executing
+	int light2_pointer; //checks which portion of each script is executing
+
+
+	uint32_t c; //stores which color the script is using
+	int finish2; //stores the execution state of each individual colors in the script and whether its finished
+	int finish; //stores the executiong state of each full script
+	int led_pointer; //controls the location of the actual LED
+
+	char lighting_pattern;
+
+	double scale; //keeps track of the intensity of each pixel during breathe
+} LED;
 
 class cdefo
 {
@@ -54,12 +72,15 @@ public:
 	static void read_ndef(NfcTag* tag, char*** loadAsString, int* depth);
 
 	//LED methods
-	static void drive_lights(Adafruit_NeoPixel* strip, char** mini, int* light_number);
-	static void light_script(char* script, char*** mini, int *light_number);
+	//static void drive_lights(Adafruit_NeoPixel* strip, char** mini, int* light_number);
+	static void drive_lights(Adafruit_NeoPixel* strip, LED* mood);
+
+	//static void light_script(char* script, char*** mini, int *light_number);
+	static void light_script(char* script, LED *led);
 
 	//EQ method
-	static void drive_eq(Adafruit_NeoPixel* strand, EQ *eq);
-	static void pulse(Adafruit_NeoPixel *strand, EQ *eq);
+	static void drive_eq(Adafruit_NeoPixel* strand, LED *eq);
+	static void pulse(Adafruit_NeoPixel *strand, LED *eq);
 
 	//Write methods
 	static void write_records(NfcAdapter* nfc);
@@ -73,8 +94,11 @@ private:
 	static uint32_t Rainbow(Adafruit_NeoPixel *strand, unsigned int *i);
 
 	//LED Patterns
-	static void breathe(Adafruit_NeoPixel *strip, uint32_t* c);
-	static void chase(Adafruit_NeoPixel* strip, uint32_t* c); //RGB lighting patterns
+	//static void breathe(Adafruit_NeoPixel *strip, uint32_t* c);
+	//static void chase(Adafruit_NeoPixel* strip, uint32_t* c); //RGB lighting patterns
+
+	static void chase(Adafruit_NeoPixel* strip, LED *mood);
+	static void breathe(Adafruit_NeoPixel* strip, LED *mood);
 
 	//default color that the strips will use when starting up, written as a packed 32-bit int
 	static const uint32_t def_mood = ((uint32_t)5 << 16) | ((uint32_t)5 << 8) | 20;
