@@ -82,8 +82,6 @@ public:
 	static void drive_eq(Adafruit_NeoPixel* strand, LED *eq);
 	static void pulse(Adafruit_NeoPixel *strand, LED *eq);
 
-	//Write methods
-	static void write_records(NfcAdapter* nfc);
 
 private:
 

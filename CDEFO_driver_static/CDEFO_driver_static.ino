@@ -53,7 +53,7 @@ void loop()
 {
     if (nfc.tagPresent())
   {
-    Serial.println("tag is found");
+    Serial.print("tag is found\n");
     NfcTag tag = nfc.read();
     //2-d character array that will store the lighting scripts
     //4 possible lighting patterns = 4 wide 2-d array
@@ -80,6 +80,7 @@ void loop()
         eq_driver.reset();
         mood_driver.enable();
         mood_driver.reset();
+        Serial.print(":End:\n");
         while (!j)
         {
           nfcTimerCurr = millis();
@@ -136,18 +137,9 @@ void loop()
     {
       free(payloads[i]);
     }
-    Serial.println("Cleanup finished");
+    Serial.print("Cleanup finished :Stop:\n");
   }
   //eq_driver.check();
 
-  Serial.println("place a tag.");
-}
-
-// Fill the dots one after the other with a color
-void colorWipe(uint32_t c, uint8_t wait) {
-  for(uint16_t i=0; i<mood.numPixels(); i++) {
-    mood.setPixelColor(i, c);
-    mood.show();
-    delay(wait);
-  }
+  Serial.print("place a tag.\n");
 }

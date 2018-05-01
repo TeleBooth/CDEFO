@@ -44,12 +44,14 @@ void cdefo::read_ndef(NfcTag* tag, char*** payloads, int* depth)
 
 void cdefo::visit_website(char* line)
 {
-	Serial.println(line);
+	Serial.print(line);
+	Serial.print("\n");
 }
 
 void cdefo::play_spotify(char* song)
 {
-	Serial.println(song);
+	Serial.print(song);
+	Serial.print("\n");
 }
 
 void cdefo::play_video(char* location)
@@ -58,12 +60,14 @@ void cdefo::play_video(char* location)
 
 void cdefo::record_audio(char* location)
 {
-	Serial.println(location);
+	Serial.print(location);
+	Serial.print("\n");
 }
 
 void cdefo::play_audio(char* location)
 {
-	Serial.println(location);
+	Serial.print(location);
+	Serial.print("\n");
 }
 
 /*void cdefo::light_script(char* script, char*** mini, int* light_number)
@@ -116,7 +120,7 @@ void cdefo::light_script(char* script, LED *led)
 			strncpy((led->mini)[led->light_number], (script - i), i);
 			(led->mini)[led->light_number][i] = '\0';
 
-			Serial.println((led->mini)[led->light_number]);
+			//Serial.println((led->mini)[led->light_number]);
 			led->light_number++;
 			//reset i so there is no overlap
 			i = -1;
@@ -236,7 +240,7 @@ void cdefo::drive_lights(Adafruit_NeoPixel* strip, LED* mood)
 		if (mood->finish2)
 		{
 			char c = mood->mini[mood->light_pointer][mood->light2_pointer];
-			Serial.println(c);
+			//Serial.println(c);
 			if (c == 'R')
 				//Red
 				mood->c = Adafruit_NeoPixel::Color(255, 0, 0);
@@ -600,13 +604,9 @@ void cdefo::stop(NfcAdapter* nfc)
 	{
 		if (message)
 		{
-			Serial.println("Experience has finished executing, place the next tag :Stop:");
+			Serial.print("Experience has finished executing, place the next tag :Stop:");
 			message = false;
 		}
-		Serial.println("Still blocking...");
+		Serial.print("Still blocking...");
 	}
-}
-
-void cdefo::write_records(NfcAdapter* nfc)
-{
 }
