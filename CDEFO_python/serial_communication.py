@@ -12,10 +12,10 @@ from tkinter import *
 
 import sys
 
-ser = serial.Serial(
-    port='COM3',
-    baudrate=9600
-)
+# ser = serial.Serial(
+#     port='COM3',
+#     baudrate=9600
+# )
 
 # default samplerate and channels
 sd.default.samplerate = 44100
@@ -25,22 +25,22 @@ out = ""
 lock = threading.Lock()
 
 # Serial read thread
-def handle_data(data):
-    global out
-    lock.acquire()
-    out = data
-    lock.release()
+# def handle_data(data):
+#     global out
+#     lock.acquire()
+#     out = data
+#     lock.release()
+#
+#
+#
+# def read_from_port(port):
+#     while True:
+#         reading = port.readline().decode("utf-8")
+#         print("Reading: " + reading)
+#         handle_data(reading)
 
 
-
-def read_from_port(port):
-    while True:
-        reading = port.readline().decode("utf-8")
-        print("Reading: " + reading)
-        handle_data(reading)
-
-
-ser_thread = threading.Thread(target=read_from_port, args=(ser,))
+#ser_thread = threading.Thread(target=read_from_port, args=(ser,))
 
 # Spotify credentials
 client_credentials_manager = SpotifyClientCredentials(client_id='0f65027d2c8e42bc9499eb12e885cb62',
@@ -54,11 +54,16 @@ class Fullscreen_Window:
     def __init__(self):
         self.state = False
         self.tk = Tk()
-        self.frame = Frame(self.tk)
+        self.tk.configure(background = '#2B2B2B')
+        self.frame = Frame(self.tk, height = 20, width = 20)
+        self.frame.configure(background = '#313335')
         self.tk.attributes("-topmost", True)
         self.tk.attributes("-fullscreen", self.state)
         self.experience = Text(self.tk, height=1, width=50)
         self.experience.pack()
+        self.experience.configure(background = '#3C3F41')
+        self.experience.configure(fg = '#93BABA')
+
 
         self.frame.pack()
         self.state = False
@@ -77,7 +82,7 @@ class Fullscreen_Window:
 
 
 w = Fullscreen_Window()
-ser_thread.start()
+#ser_thread.start()
 
 while 1:
     # out = ser.readline(timeout=0).decode("utf-8")
