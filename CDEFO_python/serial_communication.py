@@ -1,5 +1,5 @@
 import serial
-import threading
+from threading import *
 from time import sleep
 import webbrowser
 import spotipy
@@ -12,35 +12,53 @@ from tkinter import *
 
 import sys
 
-# ser = serial.Serial(
-#     port='COM3',
-#     baudrate=9600
-# )
+ser = serial.Serial(
+    port='COM3',
+    baudrate=9600
+)
 
 # default samplerate and channels
 sd.default.samplerate = 44100
 sd.default.channels = 2
 
+# Lock for the GUI
+gui_lock = Lock()
+# timer thread used for recording
+class RecThread(Thread):
+    def __init__(self, event):
+        Thread.__init__(self)
+        self.stopped = event
+
+    def run(self):
+        while not self.stopped.wait(1):
+            # call a function
+            gui_lock.acquire()
+            w.experience.insert(END, out)
+            gui_lock.release()
+
+
+
+# lock and global for serial reading
 out = ""
-lock = threading.Lock()
+lock = Lock()
 
 # Serial read thread
-# def handle_data(data):
-#     global out
-#     lock.acquire()
-#     out = data
-#     lock.release()
-#
-#
-#
-# def read_from_port(port):
-#     while True:
-#         reading = port.readline().decode("utf-8")
-#         print("Reading: " + reading)
-#         handle_data(reading)
+def handle_data(data):
+    global out
+    lock.acquire()
+    out = data
+    lock.release()
 
 
-#ser_thread = threading.Thread(target=read_from_port, args=(ser,))
+
+def read_from_port(port):
+    while True:
+        reading = port.readline().decode("utf-8")
+        print("Reading: " + reading)
+        handle_data(reading)
+
+
+ser_thread = Thread(target=read_from_port, args=(ser,))
 
 # Spotify credentials
 client_credentials_manager = SpotifyClientCredentials(client_id='0f65027d2c8e42bc9499eb12e885cb62',
@@ -54,18 +72,44 @@ class Fullscreen_Window:
     def __init__(self):
         self.state = False
         self.tk = Tk()
-        self.tk.configure(background = '#2B2B2B')
-        self.frame = Frame(self.tk, height = 20, width = 20)
-        self.frame.configure(background = '#313335')
+        self.tk.geometry("1280x720")
+
+        # Windows frame
+        self.window_frame = Frame(self.tk)
+        self.window_frame.configure(background = '#2B2B2B')
+        self.window_frame.pack_propagate(0)
+        Grid.rowconfigure(self.tk, 0, weight=1)
+        Grid.columnconfigure(self.tk, 0, weight=1)
+        self.window_frame.grid(row=0, columnspan=2, sticky=N + S + E + W)
+
+
+        # frame that holds the title
+        self.title_frame = Frame(self.window_frame)
+        Grid.rowconfigure(self.window_frame, 1, weight=1)
+        Grid.columnconfigure(self.window_frame, 1, weight=1)
+        self.title_frame.configure(background ='#313335')
+        self.title_frame.pack_propagate(0)
+        self.title_frame.grid(row = 0, columnspan = 2, padx = 10, pady = 10, sticky = N+S+E+W)
+
+        # frame that holds the text
+        self.frame = Frame(self.window_frame, height=200, width=200)
+        Grid.rowconfigure(self.window_frame, 0, weight=1)
+        Grid.columnconfigure(self.window_frame, 0, weight=1)
+        self.frame.configure(background='#313335')
+        self.frame.pack_propagate(0)
+        self.frame.grid(row = 1, column = 1, padx = 10, pady = 10, sticky = N+S+E+W)
+
+
         self.tk.attributes("-topmost", True)
         self.tk.attributes("-fullscreen", self.state)
-        self.experience = Text(self.tk, height=1, width=50)
-        self.experience.pack()
+        # self.title_frame.pack()
+        self.experience = Text(self.frame, height=1, width=1)
+        # self.experience.grid(in_ =  self.frame, padx = 20, pady = 20)
+        self.experience.pack(fill = BOTH, expand = 1, padx = 20, pady = 20)
         self.experience.configure(background = '#3C3F41')
-        self.experience.configure(fg = '#93BABA')
+        self.experience.configure(foreground = '#93BABA')
+        self.experience.configure(borderwidth = 1)
 
-
-        self.frame.pack()
         self.state = False
         self.tk.bind("<F11>", self.toggle_fullscreen)
         self.tk.bind("<Escape>", self.end_fullscreen)
@@ -82,7 +126,7 @@ class Fullscreen_Window:
 
 
 w = Fullscreen_Window()
-#ser_thread.start()
+ser_thread.start()
 
 while 1:
     # out = ser.readline(timeout=0).decode("utf-8")
@@ -91,37 +135,43 @@ while 1:
     w.tk.update()
 
     if "Firmware ver. 1.6" in out:
-        w.experience.insert('0.0', out)
-        lock.acquire
+        gui_lock.acquire()
+        w.experience.insert(END, out)
+        gui_lock.release()
+        lock.acquire()
         out = ""
-        lock.release
+        lock.release()
 
     if "place a tag." in out:
-        lock.acquire
+        lock.acquire()
         out = ""
-        lock.release
+        lock.release()
 
     if ":L:" in out:
         print("found lights")
-        lock.acquire
+        lock.acquire()
         out = ""
-        lock.release
+        lock.release()
 
     if ":W:" in out:
         print("parsing website:")
-        lock.acquire
+        lock.acquire()
         out = ""
-        lock.release
+        lock.release()
 
     if ":We:" in out:
-        w.experience.insert('0.0', "going to website:" + out.replace(":We:", ""))
+        gui_lock.acquire()
+        w.experience.insert(END, "going to website:" + out.replace(":We:", ""))
+        gui_lock.release()
         webbrowser.open(out.replace(":We:", ""), new=1, autoraise=False)
-        lock.acquire
+        lock.acquire()
         out = ""
-        lock.release
+        lock.release()
 
     if ":S:" in out:
-        w.experience.insert('0.0', "Searching for Spotify artist:" + out.replace(":S:", ""))
+        gui_lock.acquire()
+        w.experience.insert(END, "Searching for Spotify artist:" + out.replace(":S:", ""))
+        gui_lock.release()
         # print("searching for Spotify artist:")
         # print(out.replace(":S:", ""))
         result = sp.search(out.replace(":S:", ""))
@@ -131,28 +181,30 @@ while 1:
 
         trim = result['tracks']['items'][0]['external_urls']['spotify']
         webbrowser.open(trim.replace("'", ""), new=1, autoraise=False)
-        lock.acquire
+        lock.acquire()
         out = ""
-        lock.release
+        lock.release()
 
     if ":R:" in out:
         duration = [int(s) for s in out.split(":") if s.isdigit()]
         print(duration)
-        print("Recording for " + str(duration[0]) + " seconds.")
+        print("Recording for " + str(duration[0]) + " seconds...")
         print("Finished")
         # if ":P:" in out:
         #     sd.wait()
 
         # with sf.SoundFile("CDEFO.wav", mode='x', samplerate=44100, channels=2, subtype="PCM_24") as file:
         #     file.write(recording)
-        lock.acquire
+        lock.acquire()
         out = ""
-        lock.release
+        lock.release()
 
     if ":End:" in out:
-        lock.acquire
+        lock.acquire()
         out = ""
-        lock.release
+        lock.release()
 
     if "Cleanup finished :Stop:" in out:
-        w.experience.insert('0.0', out)
+        gui_lock.acquire()
+        w.experience.delete(1.0, END)
+        gui_lock.release()
