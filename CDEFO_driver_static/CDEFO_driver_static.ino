@@ -6,15 +6,19 @@
 #include <NfcAdapter.h>
 #include <LEDTimedAction.h>
 
-Adafruit_NeoPixel mood = Adafruit_NeoPixel(N_LEDS, PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel music = Adafruit_NeoPixel(LED_TOTAL, MUSIC_PIN, NEO_GRB + NEO_KHZ800);
+#define MOOD_PIN  6
+#define MUSIC_PIN  12
+#define AUDIO_PIN A0  //Pin for the envelope of the sound detector
+
+Adafruit_NeoPixel mood = Adafruit_NeoPixel(MOOD_LEDS, MOOD_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel music = Adafruit_NeoPixel(MUSIC_LEDS, MUSIC_PIN, NEO_GRB + NEO_KHZ800);
 PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);  // Indicates the Shield you are using
 //LED structure
 LED led;
 //LED thread
 LEDTimedAction eq_driver = LEDTimedAction(20, cdefo::drive_eq, &music, &led);
-LEDTimedAction mood_driver = LEDTimedAction(5, cdefo::drive_lights, &mood, &led);
+LEDTimedAction mood_driver = LEDTimedAction(15, cdefo::drive_lights, &mood, &led);
 //ANALOG PINS 0, 4, AND 5 ARE BEING USED CURRENTLY
 //DIGITAL PINS 2, 6, AND 12 ARE BEING USED CURRENTLY
 
@@ -24,13 +28,10 @@ void setup() {
   nfc.begin();
   mood.begin();
   music.begin();
-  cdefo::start_lights(&mood);
-
-  delay(100);
   
   //initialize the LED structure
   led.gradient = 0; //Used to iterate and loop through each color palette gradually
-  led.maxVol = 100;    //Holds the largest volume recorded thus far to proportionally adjust the visual's responsiveness.
+  led.maxVol = 175;    //Holds the largest volume recorded thus far to proportionally adjust the visual's responsiveness.
   led.avgBump = 0;    //Holds the "average" volume-change to trigger a "bump."
   led.volume = 0;   //Holds the volume level read from the sound detector.
   led.last = 0;     //Holds the value of volume from the previous loop() pass.
@@ -44,6 +45,11 @@ void setup() {
   led.finish2 = 1;
   led.led_pointer = 0;
   led.scale = BREATHE_SCALE;
+  led.start_col = 0;
+
+  cdefo::start_lights(&mood, &led.start_col);
+
+  delay(100);
   
   eq_driver.disable();
   mood_driver.disable();
@@ -51,7 +57,7 @@ void setup() {
 
 void loop()
 {
-    if (nfc.tagPresent())
+  if (nfc.tagPresent(10))
   {
     Serial.print("tag is found\n");
     NfcTag tag = nfc.read();
@@ -88,19 +94,19 @@ void loop()
           eq_driver.check();
           mood_driver.check();
           //cdefo::drive_eq(&music, &eq);
-          if(nfcTimerCurr - nfcTimerPrev > 10000) {
-            if(!nfc.tagPresent()){
-              j = 1;
+            if(led.finish2){
+              if(!nfc.tagPresent(10)){
+                j = 1;
+              }
             }
-            nfcTimerPrev = nfcTimerCurr;
-          }
         }
       }
 
       //:L:
-      if (payloads[i][1] == 'L')
+      if (payloads[i][2] == 'L')
       {
         cdefo::light_script(payloads[i], &led);
+        cdefo::start_lights(&mood, &led.start_col);
       }
 
       //:W: URL :WE:
@@ -137,9 +143,10 @@ void loop()
     {
       free(payloads[i]);
     }
+    led.start_col = 0; //resets the resting color
     Serial.print("Cleanup finished :Stop:\n");
   }
   //eq_driver.check();
-
   Serial.print("place a tag.\n");
+  cdefo::start_lights(&mood, &led.start_col);
 }

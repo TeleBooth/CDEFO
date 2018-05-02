@@ -20,7 +20,7 @@ void loop() {
     if (nfc.tagPresent()) {
         NdefMessage message = NdefMessage();
         message.addTextRecord(":S: Foo Fighters");
-        message.addTextRecord(":L:cRGB;bB");
+        message.addTextRecord("Y:L:cRGB;bB;");
         message.addTextRecord(":R:18:P:");
         message.addTextRecord(":Stop:");
         boolean success = nfc.write(message);

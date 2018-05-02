@@ -7,19 +7,22 @@
 #include <PN532_I2C.h>
 #include <PN532.h>   // The following files are included in the libraries Installed
 
-#define PIN      12
-#define MUSIC_PIN 6
-#define N_LEDS 30
+#define MOOD_PIN  6
+#define MUSIC_PIN  12
+#define MOOD_LEDS 90
+#define MUSIC_LEDS 60  //Change this to the number of LEDs in your strand.
+#define AUDIO_PIN A0  //Pin for the envelope of the sound detector
+
+#define PULSE_FADE .85
 #define CHASE_INTERVAL 30
 #define BREATHE_INTERVAL 75
-#define BREATHE_SCALE 1.10
+#define BREATHE_SCALE 1.08
+#define FADEIN_SCALE 1.07
 
 #define RISE_RATE     0.13    //(0 to 1) higher values mean livelier display
 #define FALL_RATE 0.04 //(0 to 1) higher values mean livelier display
 
-#define AUDIO_PIN A0  //Pin for the envelope of the sound detector
-#define LED_TOTAL 60  //Change this to the number of LEDs in your strand.
-#define LED_HALF  LED_TOTAL/2
+#define LED_HALF  MUSIC_LEDS/2
 
 //Structures
 typedef struct {
@@ -37,6 +40,7 @@ typedef struct {
 	bool bump;     //Used to pass if there was a "bump" in volume
 
 	//STRUCTURE FOR MOOD
+	uint32_t start_col; //used to store the "greeting" color for each experience
 	char **mini; //used to store the lighting scripts
 
 	int light_number; //stores the number of lighting scripts to store
@@ -45,6 +49,7 @@ typedef struct {
 
 
 	uint32_t c; //stores which color the script is using
+	uint32_t b; //breathe light
 	int finish2; //stores the execution state of each individual colors in the script and whether its finished
 	int finish; //stores the executiong state of each full script
 	int led_pointer; //controls the location of the actual LED
@@ -60,7 +65,7 @@ public:
 	cdefo();
 
 	//Startup methods
-	static void start_lights(Adafruit_NeoPixel* strip);
+	static void start_lights(Adafruit_NeoPixel* strip, uint32_t *start_col);
 
 	//Read methods
 	static void visit_website(char* line);
@@ -81,6 +86,7 @@ public:
 	//EQ method
 	static void drive_eq(Adafruit_NeoPixel* strand, LED *eq);
 	static void pulse(Adafruit_NeoPixel *strand, LED *eq);
+	static void palette_pulse(Adafruit_NeoPixel *strand, LED *eq);
 
 
 private:
