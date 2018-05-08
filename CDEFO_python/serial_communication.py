@@ -85,23 +85,20 @@ class Fullscreen_Window:
 
         # frame that holds the title
         self.title_frame = Frame(self.window_frame)
-        Grid.rowconfigure(self.window_frame, 1, weight=1)
-        Grid.columnconfigure(self.window_frame, 1, weight=1)
+        Grid.rowconfigure(self.window_frame, 0, weight=1)
+        Grid.columnconfigure(self.window_frame, 0, weight=1)
         self.title_frame.configure(background ='#313335')
         self.title_frame.pack_propagate(0)
         self.title_frame.grid(row = 0, columnspan = 2, padx = 10, pady = 10, sticky = N+S+E+W)
 
         # frame that holds the text
         self.frame = Frame(self.window_frame, height=200, width=200)
-        Grid.rowconfigure(self.window_frame, 0, weight=1)
-        Grid.columnconfigure(self.window_frame, 0, weight=1)
+        Grid.rowconfigure(self.window_frame, 1, weight=2)
+        Grid.columnconfigure(self.window_frame, 1, weight=1)
         self.frame.configure(background='#313335')
         self.frame.pack_propagate(0)
         self.frame.grid(row = 1, column = 1, padx = 10, pady = 10, sticky = N+S+E+W)
 
-
-        self.tk.attributes("-topmost", True)
-        self.tk.attributes("-fullscreen", self.state)
         # self.title_frame.pack()
         self.experience = Text(self.frame, height=1, width=1)
         # self.experience.grid(in_ =  self.frame, padx = 20, pady = 20)
@@ -110,6 +107,29 @@ class Fullscreen_Window:
         self.experience.configure(foreground = '#93BABA')
         self.experience.configure(borderwidth = 1)
 
+        # frame that holds videos and images
+        self.AV = Frame(self.window_frame, height=200, width=200)
+        Grid.columnconfigure(self.window_frame, 0, weight=1)
+        self.AV.configure(background='#313335')
+        self.AV.grid(row=1, column=0, padx=10, pady=10, sticky=N + S + E + W)
+        # images are drawn on the canvas
+        Grid.columnconfigure(self.AV, 0, weight = 1)
+        Grid.rowconfigure(self.AV, 0, weight = 10)
+        Grid.rowconfigure(self.AV, 1, weight = 1)
+        self.canvas = Canvas(self.AV).grid(row=0, columnspan=4, padx=10, pady=10, sticky=N + S + E + W)
+
+        ctrlpanel = Frame(self.AV)
+        pause = Button(ctrlpanel, text="Pause")#, command=self.OnPause)
+        play = Button(ctrlpanel, text="Play")#, command=self.OnPlay)
+        stop = Button(ctrlpanel, text="Stop")#, command=self.OnStop)
+        volume = Button(ctrlpanel, text="Volume")#, command=self.OnSetVolume)
+        pause.grid(row=1, column = 0, padx=5, pady=5)
+        play.grid(row=1, column = 1, padx=5, pady=5)
+        stop.grid(row=1, column = 2, padx=5, pady=5)
+        volume.grid(row=1, column = 3, padx=5, pady=5)
+
+        self.tk.attributes("-topmost", True)
+        self.tk.attributes("-fullscreen", self.state)
         self.state = False
         self.tk.bind("<F11>", self.toggle_fullscreen)
         self.tk.bind("<Escape>", self.end_fullscreen)
