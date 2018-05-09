@@ -1,40 +1,25 @@
 import serial
-from threading import *
 import webbrowser
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pprint
-
-import os
 import vlc
-import pathlib
-import time
-import platform
+import sys
 
 # import sounddevice as sd
 # import soundfile as sf
 # import numpy
 from tkinter import *
+from tkinter.filedialog import askopenfilename
 
-import sys
-
-# ser = serial.Serial(
-#     port='COM3',
-#     baudrate=9600
-# )
-
-# default samplerate and channels
-# sd.default.samplerate = 44100
-# sd.default.channels = 2
-
-# Lock for the GUI
-gui_lock = Lock()
-
-# lock and global for serial reading
-out = ""
-lock = Lock()
+from threading import Thread, Event, Lock
+import os
+import pathlib
+import time
+import platform
 
 
+# a timer thread that is used for the time slider which won't be implemented
 class ttkTimer(Thread):
     """a class serving same function as wxTimer... but there may be better ways to do this
     """
@@ -56,33 +41,6 @@ class ttkTimer(Thread):
 
     def get(self):
         return self.iters
-
-
-# # Serial read thread
-# def handle_data(data):
-#     global out
-#     lock.acquire()
-#     out = data
-#     lock.release()
-#
-#
-#
-# def read_from_port(port):
-#     while True:
-#         reading = port.readline().decode("utf-8")
-#         print("Reading: " + reading)
-#         handle_data(reading)
-#
-#
-# ser_thread = Thread(target=read_from_port, args=(ser,))
-
-# Spotify credentials
-client_credentials_manager = SpotifyClientCredentials(client_id='0f65027d2c8e42bc9499eb12e885cb62',
-                                                      client_secret='314f354ce98344ac9cb22f6a4c50af59')
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-
-
-# serves the same function as wxTimer
 
 
 # TKinter widgets
@@ -130,26 +88,20 @@ class Fullscreen_Window:
         Grid.columnconfigure(self.window_frame, 0, weight=1)
         self.AV.configure(background='#313335')
         self.AV.grid(row=1, column=0, padx=10, pady=10, sticky=N + S + E + W)
-        # images are drawn on the canvas
-        Grid.columnconfigure(self.AV, 0, weight=1)
-        # holds the video frame
-        Grid.rowconfigure(self.AV, 0, weight=15)
-        # holds the time slider frame
-        Grid.rowconfigure(self.AV, 1, weight=1)
-        # holds the button frame
-        Grid.rowconfigure(self.AV, 2, weight=1)
+
+        # video player elements
         self.canvas = Canvas(self.AV).grid(row=0, column=0, padx=10, pady=10, sticky=N + S + E + W)
 
         # buttons for the player
         ctrlpanel = Frame(self.AV)
         ctrlpanel.configure(background='#313335')
-        pause = Button(ctrlpanel, text="Pause")  # , command=self.OnPause)
+        pause = Button(ctrlpanel, text="Pause", command=self.OnPause)
         pause.configure(foreground='#93BABA', background='#3C3F41')
-        play = Button(ctrlpanel, text="Play")  # , command=self.OnPlay)
+        play = Button(ctrlpanel, text="Play", command=self.OnPlay)
         play.configure(foreground='#93BABA', background='#3C3F41')
-        stop = Button(ctrlpanel, text="Stop")  # , command=self.OnStop)
+        stop = Button(ctrlpanel, text="Stop", command=self.OnStop)
         stop.configure(foreground='#93BABA', background='#3C3F41')
-        volume = Button(ctrlpanel, text="Volume")  # , command=self.OnSetVolume)
+        volume = Button(ctrlpanel, text="Volume", command=self.OnSetVolume)
         volume.configure(foreground='#93BABA', background='#3C3F41')
         Grid.columnconfigure(ctrlpanel, 0, weight=1)
         Grid.columnconfigure(ctrlpanel, 1, weight=1)
@@ -161,11 +113,6 @@ class Fullscreen_Window:
         play.grid(row=0, column=1, padx=5, pady=5)
         stop.grid(row=0, column=2, padx=5, pady=5)
         volume.grid(row=0, column=3, padx=5, pady=5)
-        # pause.pack(side=LEFT)
-        # play.pack(side=LEFT)
-        # stop.pack(side=LEFT)
-        # volume.pack(side=LEFT)
-        ctrlpanel.grid(row=2, column=0, sticky=N + S + E + W)
 
         # time slider for VLC video
         ctrlpanel2 = Frame(self.AV)
@@ -178,25 +125,53 @@ class Fullscreen_Window:
                                   highlightbackground='#3C3F41', troughcolor='#93BABA')
         self.timeslider.pack(side=BOTTOM, fill=X, expand=1, padx=10)
         self.timeslider_last_update = time.time()
-        ctrlpanel2.grid(row=1, column=0, sticky=N + S + E + W)
 
-        # VLC player controls
-        self.Instance = vlc.Instance()
-        self.player = self.Instance.media_player_new()
-        # below is a test, now use the File->Open file menu
-        # media = self.Instance.media_new('output.mp4')
-        # self.player.set_media(media)
-        # self.player.play() # hit the player button
-        # self.player.video_set_deinterlace(str_to_bytes('yadif'))
-        self.timer = ttkTimer(self.OnTimer, 1.0)
-        self.timer.start()
-        # self.player.set_hwnd(self.GetHandle()) # for windows, OnOpen does does this
 
         self.tk.attributes("-topmost", True)
         self.tk.attributes("-fullscreen", self.state)
         self.state = False
         self.tk.bind("<F11>", self.toggle_fullscreen)
         self.tk.bind("<Escape>", self.end_fullscreen)
+
+    def toggle_video(self, location, event=None):
+        # images are drawn on the canvas
+        Grid.columnconfigure(self.AV, 0, weight=1)
+        # holds the video frame
+        Grid.rowconfigure(self.AV, 0, weight=15)
+        # holds the time slider frame
+        Grid.rowconfigure(self.AV, 1, weight=1)
+        # holds the button frame
+        Grid.rowconfigure(self.AV, 2, weight=1)
+
+        ctrlpanel.grid(row=2, column=0, sticky=N + S + E + W)
+        ctrlpanel2.grid(row=1, column=0, sticky=N + S + E + W)
+
+        # VLC player controls
+        self.Instance = vlc.Instance()
+        self.player = self.Instance.media_player_new()
+        # below is a test, now use the File->Open file menu
+        media = self.Instance.media_new(location)
+        self.player.set_media(media)
+        self.player.play()  # hit the player button
+        self.player.video_set_deinterlace(vlc.str_to_bytes('yadif'))
+        self.timer = ttkTimer(self.OnTimer, 1.0)
+        self.timer.start()
+        # self.player.set_hwnd(self.GetHandle()) # for windows, OnOpen does does this
+
+    def toggle_picture(self, location, event=None):
+        self.img = PhotoImage(file=location)
+        self.AV.pack()
+
+
+    def toggle_fullscreen(self, event=None):
+        self.state = not self.state  # Just toggling the boolean
+        self.tk.attributes("-fullscreen", self.state)
+        return "break"
+
+    def end_fullscreen(self, event=None):
+        self.state = False
+        self.tk.attributes("-fullscreen", False)
+        return "break"
 
     def OnExit(self, evt):
         """Closes the window.
@@ -233,7 +208,6 @@ class Fullscreen_Window:
                 self.player.set_hwnd(self.GetHandle())
             else:
                 self.player.set_xwindow(self.GetHandle())  # this line messes up windows
-            # FIXME: this should be made cross-platform
             self.OnPlay()
 
             # set the volume slider to the current volume
@@ -256,8 +230,7 @@ class Fullscreen_Window:
     def GetHandle(self):
         return self.videopanel.winfo_id()
 
-        # def OnPause(self, evt):
-
+    # def OnPause(self, evt):
     def OnPause(self):
         """Pause the player.
         """
@@ -273,7 +246,7 @@ class Fullscreen_Window:
     def OnTimer(self):
         """Update the time slider according to the current movie time.
         """
-        if self.player == None:
+        if self.player is None:
             return
         # since the self.player.get_length can change while playing,
         # re-set the timeslider to the correct range.
@@ -292,18 +265,8 @@ class Fullscreen_Window:
         if time.time() > (self.timeslider_last_update + 2.0):
             self.timeslider.set(dbl)
 
-    def toggle_fullscreen(self, event=None):
-        self.state = not self.state  # Just toggling the boolean
-        self.tk.attributes("-fullscreen", self.state)
-        return "break"
-
-    def end_fullscreen(self, event=None):
-        self.state = False
-        self.tk.attributes("-fullscreen", False)
-        return "break"
-
     def scale_sel(self, evt):
-        if self.player == None:
+        if self.player is None:
             return
         nval = self.scale_var.get()
         sval = str(nval)
@@ -325,49 +288,80 @@ class Fullscreen_Window:
             mval = "%.0f" % (nval * 1000)
             self.player.set_time(int(mval))  # expects milliseconds
 
+    def volume_sel(self, evt):
+        if self.player == None:
+            return
+        volume = self.volume_var.get()
+        if volume > 100:
+            volume = 100
+        if self.player.audio_set_volume(volume) == -1:
+            self.errorDialog("Failed to set volume")
 
-w = Fullscreen_Window()
-# ser_thread.start()
+    def OnToggleVolume(self, evt):
+        """Mute/Unmute according to the audio button.
+        """
+        is_mute = self.player.audio_get_mute()
 
-while 1:
-    # out = ser.readline(timeout=0).decode("utf-8")
-    # out = ""
-    # print(ser.readline().decode("utf-8"))
-    w.tk.update()
+        self.player.audio_set_mute(not is_mute)
+        # update the volume slider;
+        # since vlc volume range is in [0, 200],
+        # and our volume slider has range [0, 100], just divide by 2.
+        self.volume_var.set(self.player.audio_get_volume())
 
+    def OnSetVolume(self):
+        """Set the volume according to the volume sider.
+        """
+        volume = self.volume_var.get()
+        # vlc.MediaPlayer.audio_set_volume returns 0 if success, -1 otherwise
+        if volume > 100:
+            volume = 100
+        if self.player.audio_set_volume(volume) == -1:
+            self.errorDialog("Failed to set volume")
+
+    def errorDialog(self, errormessage):
+        """Display a simple error dialog.
+        """
+        Tk.tkMessageBox.showerror(self, 'Error', errormessage)
+
+
+# lock and global for serial reading
+# Serial read thread
+def handle_data(data):
+    global out
+    out = data
     if "Firmware ver. 1.6" in out:
         gui_lock.acquire()
-        w.experience.insert(END, out)
+        w.experience.insert(END, "Welcome to the Capstone Fair!")
         gui_lock.release()
-        lock.acquire()
         out = ""
-        lock.release()
 
     if "place a tag." in out:
-        lock.acquire()
         out = ""
-        lock.release()
 
     if ":L:" in out:
         print("found lights")
-        lock.acquire()
         out = ""
-        lock.release()
+
+    if ":V:" in out:
+        gui_lock.acquire()
+        w.toggle_video()
+        gui_lock.release()
+
+    if ":P:" in out:
+        gui_lock.acquire()
+        w.experience.insert(END, "going to website:" + out.replace(":We:", ""))
+        gui_lock.release()
 
     if ":W:" in out:
         print("parsing website:")
-        lock.acquire()
         out = ""
-        lock.release()
 
     if ":We:" in out:
         gui_lock.acquire()
         w.experience.insert(END, "going to website:" + out.replace(":We:", ""))
         gui_lock.release()
         webbrowser.open(out.replace(":We:", ""), new=1, autoraise=False)
-        lock.acquire()
         out = ""
-        lock.release()
 
     if ":S:" in out:
         gui_lock.acquire()
@@ -382,30 +376,74 @@ while 1:
 
         trim = result['tracks']['items'][0]['external_urls']['spotify']
         webbrowser.open(trim.replace("'", ""), new=1, autoraise=False)
-        lock.acquire()
         out = ""
-        lock.release()
 
-    if ":R:" in out:
-        duration = [int(s) for s in out.split(":") if s.isdigit()]
-        print(duration)
-        print("Recording for " + str(duration[0]) + " seconds...")
-        print("Finished")
-        # if ":P:" in out:
-        #     sd.wait()
-
-        # with sf.SoundFile("CDEFO.wav", mode='x', samplerate=44100, channels=2, subtype="PCM_24") as file:
-        #     file.write(recording)
-        lock.acquire()
-        out = ""
-        lock.release()
+    # if ":R:" in out:
+    #     duration = [int(s) for s in out.split(":") if s.isdigit()]
+    #     print(duration)
+    #     print("Recording for " + str(duration[0]) + " seconds...")
+    #     print("Finished")
+    #     # if ":P:" in out:
+    #     #     sd.wait()
+    #
+    #     # with sf.SoundFile("CDEFO.wav", mode='x', samplerate=44100, channels=2, subtype="PCM_24") as file:
+    #     #     file.write(recording)
+    #     lock.acquire()
+    #     out = ""
+    #     lock.release()
 
     if ":End:" in out:
-        lock.acquire()
         out = ""
-        lock.release()
 
     if "Cleanup finished :Stop:" in out:
         gui_lock.acquire()
         w.experience.delete(1.0, END)
         gui_lock.release()
+
+
+def read_from_port(port):
+    while True:
+        try:
+            reading = port.readline().decode("utf-8")
+            print("Reading: " + reading)
+            handle_data(reading)
+        except IOError:
+            while True:
+                try:
+                    port.close()
+                    port.open()
+                except IOError:
+                    pass
+                else:
+                    break
+
+
+if __name__ == "__main__":
+
+    # waits for the serial port to open
+    while True:
+        try:
+            ser = serial.Serial(
+                port='COM3',
+                baudrate=9600
+            )
+            ser.isOpen()
+            print("port is opened!")
+
+        except IOError:
+            pass
+        else:
+            break
+
+    # Spotify credentials
+    client_credentials_manager = SpotifyClientCredentials(client_id='0f65027d2c8e42bc9499eb12e885cb62',
+                                                          client_secret='314f354ce98344ac9cb22f6a4c50af59')
+    sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+    gui_lock = Lock()
+
+    ser_thread = Thread(target=read_from_port, args=(ser,))
+    ser_thread.start()
+
+    w = Fullscreen_Window()
+    w.tk.mainloop()
