@@ -22,7 +22,6 @@ LEDTimedAction mood_driver = LEDTimedAction(15, cdefo::drive_lights, &mood, &led
 //ANALOG PINS 0, 4, AND 5 ARE BEING USED CURRENTLY
 //DIGITAL PINS 2, 6, AND 12 ARE BEING USED CURRENTLY
 
-
 void setup() {
   Serial.begin(9600);
   nfc.begin();
@@ -31,7 +30,7 @@ void setup() {
   
   //initialize the LED structure
   led.gradient = 0; //Used to iterate and loop through each color palette gradually
-  led.maxVol = 175;    //Holds the largest volume recorded thus far to proportionally adjust the visual's responsiveness.
+  led.maxVol = 400;    //Holds the largest volume recorded thus far to proportionally adjust the visual's responsiveness.
   led.avgBump = 0;    //Holds the "average" volume-change to trigger a "bump."
   led.volume = 0;   //Holds the volume level read from the sound detector.
   led.last = 0;     //Holds the value of volume from the previous loop() pass.
@@ -46,13 +45,15 @@ void setup() {
   led.led_pointer = 0;
   led.scale = BREATHE_SCALE;
   led.start_col = 0;
+  led.colors_init = (uint8_t *)malloc(sizeof(uint8_t) * 3);
 
   cdefo::start_lights(&mood, &led.start_col);
-
-  delay(100);
+  //strcpy(script, "Y:L:cRGBRGB;bBGY;yRGB;tRGB;");
   
-  eq_driver.disable();
-  mood_driver.disable();
+  //cdefo::light_script(script, &led);
+
+
+  
 }
 
 void loop()
@@ -120,16 +121,27 @@ void loop()
       {
         cdefo::play_spotify(payloads[i]);
       }
-      //:P:
-      if (payloads[i][1] == 'P')
-      {
-        cdefo::play_audio(payloads[i]);
-      }
       //:R:
       if (payloads[i][1] == 'R')
       {
         cdefo::record_audio(payloads[i]);
       }
+      //:Pl:
+      if (payloads[i][2] == 'l')
+      {
+        cdefo::play_audio(payloads[i]);
+      }
+      //:V:
+      if (payloads[i][1] == 'V')
+      {
+        cdefo::play_video(payloads[i]);
+      }
+      //:P:
+      if (payloads[i][1] == 'P')
+      {
+        cdefo::display_image(payloads[i]);
+      }
+      
     }
     //FREE THE ALLOCATED MEMORY/CLEANUP
     //free the mini lighting script
@@ -150,3 +162,4 @@ void loop()
   Serial.print("place a tag.\n");
   cdefo::start_lights(&mood, &led.start_col);
 }
+

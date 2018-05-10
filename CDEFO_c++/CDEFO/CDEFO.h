@@ -9,8 +9,8 @@
 
 #define MOOD_PIN  6
 #define MUSIC_PIN  12
-#define MOOD_LEDS 90
-#define MUSIC_LEDS 60  //Change this to the number of LEDs in your strand.
+#define MOOD_LEDS 16
+#define MUSIC_LEDS 15  //Change this to the number of LEDs in your strand.
 #define AUDIO_PIN A0  //Pin for the envelope of the sound detector
 
 #define PULSE_FADE .85
@@ -57,6 +57,13 @@ typedef struct {
 	char lighting_pattern;
 
 	double scale; //keeps track of the intensity of each pixel during breathe
+
+	uint8_t *colors_init; // used to store each script color separately
+
+	uint32_t *twinkle_array; //stores the colors to be used in twinkle
+	uint32_t twinkle_num; //number of colors that twinkle
+
+	unsigned long time_now; //used to bake in delays
 } LED;
 
 class cdefo
@@ -71,6 +78,7 @@ public:
 	static void visit_website(char* line);
 	static void play_spotify(char* song);
 	static void play_video(char* location);
+	static void display_image(char* location);
 	static void record_audio(char* location);
 	static void play_audio(char* location);
 	static void stop(NfcAdapter* nfc);
@@ -93,7 +101,7 @@ private:
 
 	//EQ helpers
 	static double smoothVol(uint8_t last, uint8_t volume);
-	static uint8_t split(uint32_t *color, uint8_t i);
+	static uint8_t split(uint32_t color, uint8_t i);
 	static void fade(Adafruit_NeoPixel *strand, double damper);
 	static uint32_t Rainbow(Adafruit_NeoPixel *strand, unsigned int *i);
 
@@ -103,6 +111,9 @@ private:
 
 	static void chase(Adafruit_NeoPixel* strip, LED *mood);
 	static void breathe(Adafruit_NeoPixel* strip, LED *mood);
+	static void cylon_bounce(Adafruit_NeoPixel* strip, LED *mood);
+	static void twinkle_random(Adafruit_NeoPixel* strip, LED *mood);
+
 
 	//default color that the strips will use when starting up, written as a packed 32-bit int
 	static const uint32_t def_mood = ((uint32_t)5 << 16) | ((uint32_t)5 << 8) | 20;
