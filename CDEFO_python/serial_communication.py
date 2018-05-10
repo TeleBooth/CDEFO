@@ -11,6 +11,7 @@ import sys
 # import numpy
 from tkinter import *
 from tkinter.filedialog import askopenfilename
+from PIL import ImageTk, Image
 
 from threading import Thread, Event, Lock
 import os
@@ -57,27 +58,34 @@ class Fullscreen_Window:
         self.window_frame.pack_propagate(0)
         Grid.rowconfigure(self.tk, 0, weight=1)
         Grid.columnconfigure(self.tk, 0, weight=1)
-        self.window_frame.grid(row=0, columnspan=2, sticky=N + S + E + W)
+        self.window_frame.grid(row=0, column=0, sticky=N + S + E + W)
+
+
+        # allocate the grid
+        Grid.rowconfigure(self.window_frame, 0, weight=1)
+        Grid.columnconfigure(self.window_frame, 0, weight=1)
+        Grid.rowconfigure(self.window_frame, 1, weight=1)
+        Grid.columnconfigure(self.window_frame, 1, weight=1)
 
         # frame that holds the title
         self.title_frame = Frame(self.window_frame)
-        Grid.rowconfigure(self.window_frame, 0, weight=1)
-        Grid.columnconfigure(self.window_frame, 0, weight=1)
         self.title_frame.configure(background='#313335')
         self.title_frame.pack_propagate(0)
         self.title_frame.grid(row=0, columnspan=2, padx=10, pady=10, sticky=N + S + E + W)
 
+        self.title = Text(self.title_frame)
+        self.title.pack(fill=BOTH, expand=1, padx=20, pady=20)
+        self.title.configure(background='#3C3F41')
+        self.title.configure(foreground='#93BABA')
+        self.title.configure(borderwidth=1)
+
         # frame that holds the text
         self.frame = Frame(self.window_frame, height=200, width=200)
-        Grid.rowconfigure(self.window_frame, 1, weight=2)
-        Grid.columnconfigure(self.window_frame, 1, weight=1)
         self.frame.configure(background='#313335')
         self.frame.pack_propagate(0)
         self.frame.grid(row=1, column=1, padx=10, pady=10, sticky=N + S + E + W)
 
-        # self.title_frame.pack()
-        self.experience = Text(self.frame, height=1, width=1)
-        # self.experience.grid(in_ =  self.frame, padx = 20, pady = 20)
+        self.experience = Text(self.frame)
         self.experience.pack(fill=BOTH, expand=1, padx=20, pady=20)
         self.experience.configure(background='#3C3F41')
         self.experience.configure(foreground='#93BABA')
@@ -86,9 +94,25 @@ class Fullscreen_Window:
         # frame that holds videos and images
         self.AV = Frame(self.window_frame, height=200, width=200)
         Grid.columnconfigure(self.window_frame, 0, weight=1)
+        Grid.rowconfigure(self.window_frame, 1, weight = 2)
         self.AV.configure(background='#313335')
         self.AV.grid(row=1, column=0, padx=10, pady=10, sticky=N + S + E + W)
 
+        self.tk.attributes("-topmost", True)
+        self.tk.attributes("-fullscreen", self.state)
+        self.state = False
+        self.tk.bind("<F11>", self.toggle_fullscreen)
+        self.tk.bind("<Escape>", self.end_fullscreen)
+
+    def toggle_video(self, location, event=None):
+        # images are drawn on the canvas
+        Grid.columnconfigure(self.AV, 0, weight=1)
+        # holds the video frame
+        Grid.rowconfigure(self.AV, 0, weight=15)
+        # holds the time slider frame
+        Grid.rowconfigure(self.AV, 1, weight=1)
+        # holds the button frame
+        Grid.rowconfigure(self.AV, 2, weight=1)
         # video player elements
         self.canvas = Canvas(self.AV).grid(row=0, column=0, padx=10, pady=10, sticky=N + S + E + W)
 
@@ -117,31 +141,14 @@ class Fullscreen_Window:
         # time slider for VLC video
         ctrlpanel2 = Frame(self.AV)
         ctrlpanel2.configure(background='#313335')
-        self.scale_var = DoubleVar()
+        scale_var = DoubleVar()
         self.timeslider_last_val = ""
-        self.timeslider = Scale(ctrlpanel2, variable=self.scale_var, command=self.scale_sel,
+        timeslider = Scale(ctrlpanel2, variable=scale_var, command=self.scale_sel(),
                                 from_=0, to=1000, orient=HORIZONTAL, length=500)
-        self.timeslider.configure(foreground='#93BABA', background='#3C3F41', activebackground='#3C3F41',
+        timeslider.configure(foreground='#93BABA', background='#3C3F41', activebackground='#3C3F41',
                                   highlightbackground='#3C3F41', troughcolor='#93BABA')
-        self.timeslider.pack(side=BOTTOM, fill=X, expand=1, padx=10)
+        timeslider.pack(side=BOTTOM, fill=X, expand=1, padx=10)
         self.timeslider_last_update = time.time()
-
-
-        self.tk.attributes("-topmost", True)
-        self.tk.attributes("-fullscreen", self.state)
-        self.state = False
-        self.tk.bind("<F11>", self.toggle_fullscreen)
-        self.tk.bind("<Escape>", self.end_fullscreen)
-
-    def toggle_video(self, location, event=None):
-        # images are drawn on the canvas
-        Grid.columnconfigure(self.AV, 0, weight=1)
-        # holds the video frame
-        Grid.rowconfigure(self.AV, 0, weight=15)
-        # holds the time slider frame
-        Grid.rowconfigure(self.AV, 1, weight=1)
-        # holds the button frame
-        Grid.rowconfigure(self.AV, 2, weight=1)
 
         ctrlpanel.grid(row=2, column=0, sticky=N + S + E + W)
         ctrlpanel2.grid(row=1, column=0, sticky=N + S + E + W)
@@ -158,10 +165,24 @@ class Fullscreen_Window:
         self.timer.start()
         # self.player.set_hwnd(self.GetHandle()) # for windows, OnOpen does does this
 
-    def toggle_picture(self, location, event=None):
-        self.img = PhotoImage(file=location)
-        self.AV.pack()
+    def toggle_picture(self, location):
+        Grid.rowconfigure(self.AV, 0, weight=1)
+        Grid.columnconfigure(self.AV, 0, weight=1)
+        self.original = Image.open(location)
+        self.display = Canvas(self.AV, bd=0, highlightthickness=0, relief = SUNKEN)
 
+        # resizing
+        self.tk.update()
+
+        print(self.AV.winfo_width())
+        size = (self.AV.winfo_width(), self.AV.winfo_height())
+        resized = self.original.resize(size, Image.ANTIALIAS)
+
+        self.img = ImageTk.PhotoImage(resized)
+        self.display.create_image(0, 0, image=self.img, anchor=CENTER
+                                  , tags="IMG")
+        self.display.grid(row=0, padx = 10, pady = 10, sticky=W + E + N + S)
+        pass
 
     def toggle_fullscreen(self, event=None):
         self.state = not self.state  # Just toggling the boolean
@@ -344,12 +365,12 @@ def handle_data(data):
 
     if ":V:" in out:
         gui_lock.acquire()
-        w.toggle_video()
+        w.toggle_video(out.replace(":V:", ""))
         gui_lock.release()
 
     if ":P:" in out:
         gui_lock.acquire()
-        w.experience.insert(END, "going to website:" + out.replace(":We:", ""))
+        w.toggle_picture(out.replace(":P:", ""))
         gui_lock.release()
 
     if ":W:" in out:
@@ -420,20 +441,20 @@ def read_from_port(port):
 
 if __name__ == "__main__":
 
-    # waits for the serial port to open
-    while True:
-        try:
-            ser = serial.Serial(
-                port='COM3',
-                baudrate=9600
-            )
-            ser.isOpen()
-            print("port is opened!")
-
-        except IOError:
-            pass
-        else:
-            break
+    # # waits for the serial port to open
+    # while True:
+    #     try:
+    #         ser = serial.Serial(
+    #             port='COM3',
+    #             baudrate=9600
+    #         )
+    #         ser.isOpen()
+    #         print("port is opened!")
+    #
+    #     except IOError:
+    #         pass
+    #     else:
+    #         break
 
     # Spotify credentials
     client_credentials_manager = SpotifyClientCredentials(client_id='0f65027d2c8e42bc9499eb12e885cb62',
@@ -442,8 +463,11 @@ if __name__ == "__main__":
 
     gui_lock = Lock()
 
-    ser_thread = Thread(target=read_from_port, args=(ser,))
-    ser_thread.start()
+    # ser_thread = Thread(target=read_from_port, args=(ser,))
+    # ser_thread.start()
 
+    output = input("Accepting keyboard input: ")
     w = Fullscreen_Window()
+    w.toggle_picture(output.replace(":P:", ""))
+
     w.tk.mainloop()

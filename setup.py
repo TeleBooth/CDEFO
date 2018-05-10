@@ -58,5 +58,5 @@ setup(
     license='',
     author='Jeremy',
     author_email='',
-    description=''
+    description='', install_requires=['Pillow']
 )
