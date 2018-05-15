@@ -270,3 +270,5 @@ __pycache__/
 /CDEFO_python/TurtleA.wav
 /CDEFO_python/text_Foo.txt
 /CDEFO_python/TurtleV.mp4
+
+_site/
