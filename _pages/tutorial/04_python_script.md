@@ -105,9 +105,53 @@ such as Audio/Video playback, and serving large amounts of text that would norma
 When it comes to this script, there are only three things to note:
 1. Running the script with the Arduino plugged acts like a Serial Console and reset the Arduino, this is useful if there is an unexpected crash, or you wish to sync the Arduino and script together (which is absolutely intended)
 2. Any files that you plan on serving with the script **must** be in the same directory as the script. The naming scheme is also very strict, and the `file_name` should be kept short so as to fit on an NFC tag.
-3. Text files are displayed alongside photos or videos, and they must follow the naming convention "text_{AV_file_name}.txt"
+3. Text files are displayed alongside photos or videos (`:P:` and `:V:` respectively) and they must follow the naming convention "text_{AV_file_name}.txt"
 
 An example of the Python script working together the Arduino can be seen in one of the demonstrations I prepared for the Capstone Fair.
 Here is the story of John Fitzell's Hedgehog.
 {% include youtubePlayer.html id="SxYcZkiHW9E" %}
+
+Looking at the directory tree where I had the script running, along with the commands I had written to the NFC tag help to demystify what (3) in particular means.
+
+<figure>
+        <img src="{{ site.baseurl }}/_assets/images/Directory_Python.jpg"/>
+        <figcaption>See, looks how bad these pads got. They literally have holes in them and you don't even know it until you pry them off manually</figcaption>
+</figure>
+
+{% highlight c++ %}
+
+void loop() {
+    Serial.println("\nPlace an NFC Tag that you want to Record these Messages on!"); // Command for the Serial Monitor
+    if (nfc.tagPresent()) {
+        NdefMessage message = NdefMessage();
+        message.addTextRecord(":Pl:TurtleA.wav");
+        message.addTextRecord(":V:TurtleV.mp4");
+        message.addTextRecord("B:L:bBT;yTB;tTB");
+        message.addTextRecord(":Stop:");
+        boolean success = nfc.write(message);
+        if (success) {
+            Serial.println("Good Job, the experience is now ready!"); // if it works you will see this message 
+        } else {
+            Serial.println("Write failed"); // If the the rewrite failed you will see this message
+        }
+    }
+    delay(5000);
+}
+{% endhighlight %}
+
+The second `TextRecord` recorded in this experience is `":V:TurtleV.mp4"` and according to the naming convention defined in (3),
+this means that the text that the script will try to serve will be named `"text_TurtleV.txt"`.
+
+Other than this, it's really only pertinent to let you know that the Python script is signficantly more stable than the Arduino,
+simply because of how fragile the Arduino are and how picky they are when it comes to the proper working conditions. This last experience I showed you was recorded moments after this...
+
+{% include youtubePlayer.html id="YiPeeaX3jfE" %}
+
+In this experience, I have an EQ running (covered in the docs) along with the regular Mood Lighting scripts and the Python script. 
+You can see at the beginning the script actually restarts in the middle because in the process of running the LEDs and the NFC readers at the same time, 
+the Arduino hard resets for an unknown reason. From what I've gathered, though, it has something to do with the quality of the ground on the DC Power Supply that I use to power the LEDs 
+(which is odd, since the Arduino isn't even connected to the power through there, it's only grounded through it.
+
+
+
 
