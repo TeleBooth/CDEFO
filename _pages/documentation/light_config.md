@@ -69,10 +69,14 @@ otherwise you'll end up with all sorts of loose ground connections, data connect
 Loose connections were by far was the biggest issue I ran into over the course of the project...
 
 <figure>
-        <img src="http://127.0.0.1:4000/_assets/images/badpads.jpg" {% if include.alt %} alt="{{ include.alt }}" {% endif %} {% if include.width %} width="{{ include.width }}" {% endif %}/>
-        <figcaption>{{ include.caption }}</figcaption>
-    </figure>
+        <img src="{{ site.baseurl }}/_assets/images/badpads.jpg"/>
+        <figcaption>See, looks how bad these pads got. They literally have holes in them and you don't even know it until you pry them off manually</figcaption>
+</figure>
 
+This easily resulted at least 70 hours worth of debugging and lab time. This can be offset by soldering the wires a little further up the strip as to alleviate any torque, like so...
 
-and resulted in easily 70 hours worth of debugging and lab time. This can be offset by soldering.
+<figure>
+        <img src="{{ site.baseurl }}/_assets/images/goodpads.jpg"/>
+        <figcaption>See, looks how bad these pads got. They literally have holes in them and you don't even know it until you pry them off manually</figcaption>
+</figure>
 
