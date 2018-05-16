@@ -4,6 +4,8 @@ title: Setting Up Lights
 category: documentation
 ---
 
+### Software:
+
 In order to keep everything static, the LEDs have two components. There's the NeoPixel LED Object instantiated in the Driver Sketch like so...
 
 {% highlight c++ %}
@@ -64,6 +66,8 @@ I am able to prevent the creation of new blocks of memory,
 and subsequently prevent massive amounts of internal memory fragmentation that could potentially crash the Arduino.
 I have found that this massively improves stability at the cost of only a few extra clock cycles.
 
+### Hardware
+
 Hardware wise, you only need to make sure that the LED strips you're using have strong enough pads,
 otherwise you'll end up with all sorts of loose ground connections, data connections.
 Loose connections were by far was the biggest issue I ran into over the course of the project...
@@ -77,6 +81,6 @@ This easily resulted at least 70 hours worth of debugging and lab time. This can
 
 <figure>
         <img src="{{ site.baseurl }}/_assets/images/goodpads.jpg"/>
-        <figcaption>See, looks how bad these pads got. They literally have holes in them and you don't even know it until you pry them off manually</figcaption>
+        <figcaption>The data cable here is still at risk of tearing off, but I found that didn't happen nearly as often as the 5V and GND</figcaption>
 </figure>
 
