@@ -20,11 +20,12 @@
   - Any analog sound detector
   	- [I used this one from SparkFun](https://www.sparkfun.com/products/12642?_ga=2.233181918.1518020675.1526440855-1533495399.1518571797)
 
+
 The tutorial will be divided into several discrete parts:
-	1. Setting up the Arduino Sketch
-    2. Writing your First Experience
-    3. Setting up the Python Script
-    4. Setting up Audio/Visual Content
+1. Setting up the Arduino Sketch
+2. Writing your First Experience
+3. Setting up the Python Script
+4. Setting up Audio/Visual Content
     
 ### Credits:
 #### Created Using
