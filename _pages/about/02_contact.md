@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Contact
-permalink: /contact/
+permalink: /CDEFO/contact/
 ---
 
 Contact content goes here.

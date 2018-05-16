@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Tutorials
-permalink: /tut/
+permalink: /CDEFO/tut/
 ---
 Hi there, just testing to see if this works
 <ul>

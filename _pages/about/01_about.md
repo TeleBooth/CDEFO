@@ -1,7 +1,7 @@
 ---
 layout: page
 title: About
-permalink: /about/
+permalink: /CDEFO/about/
 ---
 
 By applying the tenants of pervasive computing (PvC) in conjunction with the philosophy of speculative design, 
