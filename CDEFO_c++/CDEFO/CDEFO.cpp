@@ -107,11 +107,13 @@ void cdefo::play_audio(char* location)
 	Serial.print("\n");
 }
 
+
 void cdefo::light_script(char* script, LED* led)
 {
 	//translate the script into actual lighting
 	//starts at index = 4 because of the ":L:" and the start_col at the beginning
 	char c = script[0];
+	//Serial.println("Starting");
 	//Serial.println(c);
 	if (c == 'R')
 		//Red
@@ -150,7 +152,7 @@ void cdefo::light_script(char* script, LED* led)
 			strncpy((led->mini)[led->light_number], (script - i), i);
 			(led->mini)[led->light_number][i] = '\0';
 
-			Serial.println((led->mini)[led->light_number]);
+			//Serial.println((led->mini)[led->light_number]);
 			led->light_number++;
 			//reset i so there is no overlap
 			i = -1;
@@ -193,9 +195,84 @@ void cdefo::drive_eq(Adafruit_NeoPixel* strand, LED* eq)
 
 void cdefo::pulse(Adafruit_NeoPixel* strand, LED* eq)
 {
-	fade(strand, PULSE_FADE); //Listed below, this function simply dims the colors a little bit each pass of loop()
+	//fade(strand, PULSE_FADE); //Listed below, this function simply dims the colors a little bit each pass of loop()
 
-	//Advances the palette to the next noticeable color if there is a "bump"
+	////Advances the palette to the next noticeable color if there is a "bump"
+	//if (eq->bump)
+	//	eq->gradient += thresholds[eq->palette] / 24;
+
+	//uint32_t init_col2 = strand->getpixelcolor(0);
+	//uint32_t col = rainbow(strand, &(eq->gradient)); //our retrieved 32-bit color
+	//uint8_t colors_init[3];
+	//float init_col = 0, init_col2 = 0;
+	//for (int k = 0; k < 3; k++)
+	//{
+	//	colors_init[k] = split(col, k) * .25; //scales down the initial lighting
+	//	init_col += colors_init[k];
+	//	init_col2 += split(init_col2, k);
+	//}
+	//init_col /= 3.0, init_col2 /= 3.0;
+	//if (init_col > init_col2)
+	//{
+	//	strand->setpixelcolor(0, strand->color(colors_init[0], colors_init[1], colors_init[2]));
+	//	strand->setpixelcolor(music_leds - 1, strand->color(colors_init[0], colors_init[1], colors_init[2]));
+	//	strand->setpixelcolor(1, strand->color(colors_init[0] * .4, colors_init[1] * .4, colors_init[2] * .4));
+	//	strand->setpixelcolor(music_leds - 2, strand->color(colors_init[0] * .4, colors_init[1] * .4, colors_init[2] * .4));
+	//	strand->setpixelcolor(2, strand->color(colors_init[0] * .3, colors_init[1] * .3, colors_init[2] * .3));
+	//	strand->setpixelcolor(music_leds - 3, strand->color(colors_init[0] * .3, colors_init[1] * .3, colors_init[2] * .3));
+	//}
+
+
+	////if it's silent, we want the fade effect to take over, hence this if-statement
+	//if (eq->volume > 0)
+	//{
+	//	double newvol = smoothvol(eq->last, eq->volume);
+	//	//these variables determine where to start and end the pulse since it starts from the middle of the strand.
+	//	//  the quantities are stored in variables so they only have to be computed once (plus we use them in the loop).
+	//	int start = led_half - (led_half * (newvol / eq->maxvol));
+	//	int finish = led_half + (led_half * (newvol / eq->maxvol)) + strand->numpixels() % 2;
+	//	//listed above, led_half is simply half the number of leds on your strand. ↑ this part adjusts for an odd quantity.
+
+	//	for (int i = start; i < finish; i++)
+	//	{
+	//		//      for (int i = 0; i < strip.numpixels() / 2, i++) {
+
+	//		//"damp" creates the fade effect of being dimmer the farther the pixel is from the center of the strand.
+	//		//  it returns a value between 0 and 1 that peaks at 1 at the center of the strand and 0 at the ends.
+	//		float damp = sin((i - start) * pi / float(finish - start));
+
+	//		//squaring damp creates more distinctive brightness.
+	//		damp = pow(damp, 2.0);
+
+	//		uint32_t col2 = strand->getpixelcolor(i);
+	//		uint8_t colors[3];
+	//		float avgcol = 0, avgcol2 = 0;
+	//		for (int k = 0; k < 3; k++)
+	//		{
+	//			colors[k] = split(col, k) * damp * pow(eq->volume / eq->maxvol, 2);
+	//			avgcol += colors[k];
+	//			avgcol2 += split(col2, k);
+	//		}
+	//		avgcol /= 3.0, avgcol2 /= 3.0;
+	//		//serial.println((i - led_half) % music_leds);
+	//		if (avgcol > avgcol2) {
+	//			if (i - led_half < 0) {
+	//				strand->setpixelcolor(music_leds + (i - led_half), strand->color(colors[0], colors[1], colors[2]));
+	//				//serial.println(music_leds + (i - led_half));
+	//			
+	//			}
+
+	//			else {
+	//				strand->setpixelcolor((i - led_half), strand->color(colors[0], colors[1], colors[2]));
+	//				//serial.println(i - led_half);
+	//			}
+	//		}
+	//	}
+
+	//}
+	fade(strand, PULSE_FADE);   //Listed below, this function simply dims the colors a little bit each pass of loop()
+
+								//Advances the palette to the next noticeable color if there is a "bump"
 	if (eq->bump)
 		eq->gradient += thresholds[eq->palette] / 24;
 
@@ -203,27 +280,24 @@ void cdefo::pulse(Adafruit_NeoPixel* strand, LED* eq)
 	uint32_t col = Rainbow(strand, &(eq->gradient)); //Our retrieved 32-bit color
 	uint8_t colors_init[3];
 	float init_Col = 0, init_Col2 = 0;
-	for (int k = 0; k < 3; k++)
-	{
+	for (int k = 0; k < 3; k++) {
 		colors_init[k] = split(col, k) * .25; //scales down the initial lighting
 		init_Col += colors_init[k];
 		init_Col2 += split(init_col2, k);
 	}
 	init_Col /= 3.0, init_Col2 /= 3.0;
-	if (init_Col > init_Col2)
-	{
-		strand->setPixelColor(0, strand->Color(colors_init[0], colors_init[1], colors_init[2]));
-		strand->setPixelColor(MUSIC_LEDS - 1, strand->Color(colors_init[0], colors_init[1], colors_init[2]));
-		strand->setPixelColor(1, strand->Color(colors_init[0] * .4, colors_init[1] * .4, colors_init[2] * .4));
-		strand->setPixelColor(MUSIC_LEDS - 2, strand->Color(colors_init[0] * .4, colors_init[1] * .4, colors_init[2] * .4));
-		strand->setPixelColor(2, strand->Color(colors_init[0] * .3, colors_init[1] * .3, colors_init[2] * .3));
-		strand->setPixelColor(MUSIC_LEDS - 3, strand->Color(colors_init[0] * .3, colors_init[1] * .3, colors_init[2] * .3));
+	if (init_Col > init_Col2) {
+		strand->setPixelColor(LED_HALF, strand->Color(colors_init[0], colors_init[1], colors_init[2]));
+		strand->setPixelColor(LED_HALF - 1, strand->Color(colors_init[0], colors_init[1], colors_init[2]));
+		strand->setPixelColor(LED_HALF + 1, strand->Color(colors_init[0] * .4, colors_init[1] * .4, colors_init[2] * .4));
+		strand->setPixelColor(LED_HALF - 2, strand->Color(colors_init[0] * .4, colors_init[1] * .4, colors_init[2] * .4));
+		strand->setPixelColor(LED_HALF + 2, strand->Color(colors_init[0] * .3, colors_init[1] * .3, colors_init[2] * .3));
+		strand->setPixelColor(LED_HALF - 3, strand->Color(colors_init[0] * .3, colors_init[1] * .3, colors_init[2] * .3));
 	}
 
-
 	//If it's silent, we want the fade effect to take over, hence this if-statement
-	if (eq->volume > 0)
-	{
+	if (eq->volume > 0) {
+
 		double newVol = smoothVol(eq->last, eq->volume);
 		//These variables determine where to start and end the pulse since it starts from the middle of the strand.
 		//  The quantities are stored in variables so they only have to be computed once (plus we use them in the loop).
@@ -231,8 +305,7 @@ void cdefo::pulse(Adafruit_NeoPixel* strand, LED* eq)
 		int finish = LED_HALF + (LED_HALF * (newVol / eq->maxVol)) + strand->numPixels() % 2;
 		//Listed above, LED_HALF is simply half the number of LEDs on your strand. ↑ this part adjusts for an odd quantity.
 
-		for (int i = start; i < finish; i++)
-		{
+		for (int i = start; i < finish; i++) {
 			//      for (int i = 0; i < strip.numPixels() / 2, i++) {
 
 			//"damp" creates the fade effect of being dimmer the farther the pixel is from the center of the strand.
@@ -245,18 +318,16 @@ void cdefo::pulse(Adafruit_NeoPixel* strand, LED* eq)
 			uint32_t col2 = strand->getPixelColor(i);
 			uint8_t colors[3];
 			float avgCol = 0, avgCol2 = 0;
-			for (int k = 0; k < 3; k++)
-			{
+			for (int k = 0; k < 3; k++) {
 				colors[k] = split(col, k) * damp * pow(eq->volume / eq->maxVol, 2);
 				avgCol += colors[k];
 				avgCol2 += split(col2, k);
 			}
 			avgCol /= 3.0, avgCol2 /= 3.0;
-			if (avgCol > avgCol2) strand->setPixelColor(((i - LED_HALF) % MUSIC_LEDS),
-			                                            strand->Color(colors[0], colors[1], colors[2]));
+			if (avgCol > avgCol2) strand->setPixelColor(i, strand->Color(colors[0], colors[1], colors[2]));
 		}
+		strand->show();
 	}
-	strand->show();
 }
 
 void cdefo::palette_pulse(Adafruit_NeoPixel* strand, LED* eq)
@@ -516,43 +587,44 @@ void cdefo::drive_lights(Adafruit_NeoPixel* strip, LED* mood)
 				int i = 0;
 				while (mood->mini[mood->light_pointer][i + 1] != '\0') {
 					i++; //retrieves the number of colors in the twinkle script
-		
 				}
 				mood->twinkle_array = (uint32_t *)malloc(sizeof(uint32_t) * i);
 				mood->twinkle_num = i;
-				mood->light2_pointer += i -1;
-				char t;
-				for (int j = 0; j < i; j++)
+				//Serial.println(mood->twinkle_num);
+				mood->light2_pointer += i - 1;
+				for (int j = 1; j <= i; j++)
 				{
+					//Serial.println(" twinkle");
 					char t = mood->mini[mood->light_pointer][j];
+					//Serial.println(t);
 					if (t == 'R')
 						//Red
-						mood->twinkle_array[j] = Adafruit_NeoPixel::Color(40, 0, 0);
+						mood->twinkle_array[j-1] = Adafruit_NeoPixel::Color(40, 0, 0);
 					else if (t == 'G')
 						//Green
-						mood->twinkle_array[j] = Adafruit_NeoPixel::Color(0, 40, 0);
-					else if (c == 'B')
+						mood->twinkle_array[j-1] = Adafruit_NeoPixel::Color(0, 40, 0);
+					else if (t == 'B')
 						//Blue
-						mood->twinkle_array[j] = Adafruit_NeoPixel::Color(0, 0, 40);
-					else if (c == 'Y')
+						mood->twinkle_array[j-1] = Adafruit_NeoPixel::Color(0, 0, 40);
+					else if (t == 'Y')
 						//Yellow
-						mood->twinkle_array[j] = Adafruit_NeoPixel::Color(40, 40, 0);
-					else if (c == 'T')
+						mood->twinkle_array[j-1] = Adafruit_NeoPixel::Color(40, 40, 0);
+					else if (t == 'T')
 						//Turquoise
-						mood->twinkle_array[j] = Adafruit_NeoPixel::Color(0, 40, 40);
-					else if (c == 'P')
+						mood->twinkle_array[j-1] = Adafruit_NeoPixel::Color(0, 40, 40);
+					else if (t == 'P')
 						//Purple
-						mood->twinkle_array[j] = Adafruit_NeoPixel::Color(40, 0, 40);
-					else
+						mood->twinkle_array[j-1] = Adafruit_NeoPixel::Color(40, 0, 40);
+					else {
 						//White
-						mood->twinkle_array[j] = Adafruit_NeoPixel::Color(40, 40, 40);
+						mood->twinkle_array[j-1] = Adafruit_NeoPixel::Color(40, 40, 40);
+						//Serial.println("White");
+					}
+					//Serial.println(mood->mini[mood->light_pointer][0]);
 				}
-
 			}
-
 			mood->finish2 = 0;
 		}
-
 
 		else if (mood->mini[mood->light_pointer][0] == 'c' && !mood->finish2)
 		{
@@ -573,6 +645,7 @@ void cdefo::drive_lights(Adafruit_NeoPixel* strip, LED* mood)
 		{
 			twinkle_random(strip, mood);
 		}
+		//Serial.println(mood->mini[mood->light_pointer][0]);
 	}
 }
 
@@ -618,7 +691,6 @@ void cdefo::chase(Adafruit_NeoPixel* strip, LED* mood)
 	strip->show();
 	mood->led_pointer++;
 }
-
 //The lights breathe, but it fades towards the edges
 void cdefo::breathe(Adafruit_NeoPixel* strip, LED* mood)
 {
@@ -670,14 +742,15 @@ void cdefo::breathe(Adafruit_NeoPixel* strip, LED* mood)
 
 void cdefo::cylon_bounce(Adafruit_NeoPixel* strip, LED* mood)
 {
-	if (mood->led_pointer < (MOOD_LEDS - 8))
+	if (mood->led_pointer < (MOOD_LEDS - 6))
 	{
 		//Serial.println("cylon right");
-		for (int j = 1; j <= 6; j++)
+		for (int j = 0; j <= 6; j++)
 		{
 			strip->setPixelColor(mood->led_pointer + j, Adafruit_NeoPixel::Color(mood->colors_init[0],
 			                                                                     mood->colors_init[1],
 			                                                                     mood->colors_init[2]));
+			//Serial.print(mood->led_pointer + j);
 		}
 		//Serial.println('\n');
 		//Serial.println(mood->led_pointer);
@@ -688,27 +761,37 @@ void cdefo::cylon_bounce(Adafruit_NeoPixel* strip, LED* mood)
 		                                              mood->colors_init[2] / 10));
 	}
 
-	else if (mood->led_pointer < (2 * MOOD_LEDS - 16))
+	else if (mood->led_pointer > (MOOD_LEDS) && mood->led_pointer < (2 * MOOD_LEDS) - 5)
 	{
 		//Serial.println("cylon left");
-		for (int j = 1; j <= 6; j++)
+		for (int j = 0; j <= 6; j++)
 		{
-			strip->setPixelColor((MOOD_LEDS - (mood->led_pointer + j)) % MOOD_LEDS, Adafruit_NeoPixel::Color(
+			if (MOOD_LEDS - ((mood->led_pointer + j) % MOOD_LEDS) == MOOD_LEDS)
+			{
+				strip->setPixelColor(0, Adafruit_NeoPixel::Color(
+					mood->colors_init[0],
+					mood->colors_init[1],
+					mood->colors_init[2]));
+			}
+
+			else 
+				strip->setPixelColor(MOOD_LEDS - ((mood->led_pointer + j)%MOOD_LEDS), Adafruit_NeoPixel::Color(
 				                     mood->colors_init[0],
 				                     mood->colors_init[1],
 				                     mood->colors_init[2]));
+			//Serial.print(MOOD_LEDS - ((mood->led_pointer + j) % MOOD_LEDS));
 		}
 		//Serial.println('\n');
-		//Serial.println(mood->led_pointer);
+		//Serial.println((mood->led_pointer)%MOOD_LEDS);
 
 
-		strip->setPixelColor((MOOD_LEDS - mood->led_pointer) % MOOD_LEDS, mood->start_col); //wipes the LED trailing behind
-		strip->setPixelColor(MOOD_LEDS - (mood->led_pointer + 7) % MOOD_LEDS,
+		strip->setPixelColor(MOOD_LEDS - ((mood->led_pointer - 1)%MOOD_LEDS), mood->start_col); //wipes the LED trailing behind
+		strip->setPixelColor(MOOD_LEDS - ((mood->led_pointer)%MOOD_LEDS),
 		                     Adafruit_NeoPixel::Color(mood->colors_init[0] / 10, mood->colors_init[1] / 10,
 		                                              mood->colors_init[2] / 10));
 	}
 
-	else
+	else if (mood->led_pointer > (2 * MOOD_LEDS))
 	{
 		mood->led_pointer = -1;
 		mood->finish2 = 1;
@@ -723,16 +806,19 @@ void cdefo::cylon_bounce(Adafruit_NeoPixel* strip, LED* mood)
 void cdefo::twinkle_random(Adafruit_NeoPixel* strip, LED * mood)
 {
 	//Serial.print(mood->mini[2]);
-	int rand_index = random(mood->twinkle_num);
+	int rand_index = floor(random(0, mood->twinkle_num));
 	uint32_t col = mood->twinkle_array[rand_index];
 	int damper = random(1,6); //6 levels of brightness
+	//Serial.println(damper);
 	uint8_t colors_scaled[3];
-	for (int k = 0; k < 3; k++) 
-		colors_scaled[k] = split(col, k) * damper; //splits the color and then scales it
+	for (int k = 0; k < 3; k++) {
+		//Serial.println(k);
+		colors_scaled[k] = split(col, k) * damper;//splits the color and then scales it
+		//Serial.print(colors_scaled[k]);
+	}
+	//Serial.print('\n');
 
 	uint32_t rand_col = Adafruit_NeoPixel::Color(colors_scaled[0], colors_scaled[1], colors_scaled[2]);
-	//Serial.print(rand_index);
-	//Serial.println(": Color #");
 
 	if(mood->led_pointer < MOOD_LEDS*3 && (millis() > mood->time_now + 50))
 	{
@@ -740,17 +826,13 @@ void cdefo::twinkle_random(Adafruit_NeoPixel* strip, LED * mood)
 		int led_sel = random(MOOD_LEDS);
 		//Serial.print(led_sel);
 		//Serial.println(": LED #");
-		double scale = 1 / 6;
-		for(int i = 0; i<3; i++) //fades the colors in
-		{
-			strip->setPixelColor(led_sel, Adafruit_NeoPixel::Color(colors_scaled[0] * scale, colors_scaled[1] * scale, colors_scaled[2] * scale));
-			scale += scale;
-		}
+		double scale = .1;
+		uint32_t col = Adafruit_NeoPixel::Color(colors_scaled[0], colors_scaled[1], colors_scaled[2]);
+		strip->setPixelColor(led_sel, col);
 		strip->show();
 		mood->led_pointer++;
 		
 	}
-
 	else if(mood->led_pointer >= MOOD_LEDS * 3)
 	{
 		mood->led_pointer = 0;
@@ -759,7 +841,6 @@ void cdefo::twinkle_random(Adafruit_NeoPixel* strip, LED * mood)
 		//Serial.println("finished");
 		free(mood->twinkle_array);
 	}
-
 }
 
 double cdefo::smoothVol(uint8_t last, uint8_t volume)
