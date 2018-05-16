@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Setting Up Lights
-category: documentation
+category: tutorial
 ---
 
 ### Software:
@@ -61,7 +61,7 @@ typedef struct {
 
 {% endhighlight %}
 
-By having everything contained within this structure and being calling everything through their pointers insteaad of passing them by copies,
+By having everything contained within this structure and calling variables through their pointers instead of passing them by copies,
 I am able to prevent the creation of new blocks of memory, 
 and subsequently prevent massive amounts of internal memory fragmentation that could potentially crash the Arduino.
 I have found that this massively improves stability at the cost of only a few extra clock cycles.
