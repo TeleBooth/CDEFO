@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Blog
-permalink: /CDEFO/blog/
+permalink: /blog/
 ---
 <ul>
   {% for post in site.posts %}

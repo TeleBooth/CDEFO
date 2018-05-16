@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Documentation
-permalink: /CDEFO/doc/
+permalink: /doc/
 ---
 Hi there, just testing to see if this works
 <ul>

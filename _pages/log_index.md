@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Build Log
-permalink: /CDEFO/log/
+permalink: /log/
 ---
 Hi there, just testing to see if this works
 <ul>
