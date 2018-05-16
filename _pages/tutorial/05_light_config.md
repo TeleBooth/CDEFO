@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Setting Up Lights
+title: NeoPixel Caveats
 category: tutorial
 ---
 

@@ -3,7 +3,8 @@ layout: page
 title: Tutorials
 permalink: /tut/
 ---
-Hi there, just testing to see if this works
+
+General Tutorial on setting up the software environment. A bonus caveat about using NeoPixels.
 <ul>
   {% for page in site.pages %}
 	{% if page.category == 'tutorial' %}

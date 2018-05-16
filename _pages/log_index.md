@@ -3,7 +3,8 @@ layout: page
 title: Build Log
 permalink: /log/
 ---
-Hi there, just testing to see if this works
+
+Will host all of the research journals I made over the semester.
 <ul>
   {% for page in site.pages %}
 	{% if page.category == 'build-log' %}

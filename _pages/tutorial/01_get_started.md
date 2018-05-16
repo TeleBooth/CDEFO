@@ -8,21 +8,21 @@ category: tutorial
 The aim of this project is to help inform the direction of Ubiquitous Computing by providing the tools to create an UbiComp Environment in which NFC embedded objects control the flow of the room in a free-form, artistic manner.
 
 ## Software Dependencies:
-  #### _Arduino Required:_
+  ### _Arduino Required:_
   - Arduino IDE
   - [don/NDEF NFC Mifare Tag Library](https://github.com/don/NDEF)
   - [AdaFruit NeoPixel Library](https://github.com/adafruit/Adafruit_NeoPixel)
 
-  #### _Python Script (not required):_
+  ### _Python Script (not required):_
   - All dependencies included in the setup.py provided
 
 ## Hardware Requirements:
-  #### _Minimum:_
+  ### _Minimum:_
   - Arduino Uno R3+
   - AdaFruit NFC Shield in I2C mode (Other PN532-based shields might also work)
   - Mifare NFC tags (size doesn't matter too much, but larger sizes allow for more complex experiences)
 
-  #### _Recommended:_
+  ### _Recommended:_
   - WS2812B Individually Addressable LEDs
   - 10A+ 5V Power Supply
   - [Read Adafruit's Neo Pixel wiring guide](https://learn.adafruit.com/adafruit-neopixel-uberguide/the-magic-of-neopixels)
