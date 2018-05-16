@@ -6,6 +6,7 @@ email: booth212092@gmail.com
 github_username:  TeleBooth
 
 # Build settings
+baseurl: /CDEFO
 include: ['_pages', '_assets']
 category-list: [build-log, tutorial, documentation]
 
