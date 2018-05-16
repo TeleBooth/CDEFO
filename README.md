@@ -10,7 +10,7 @@ The aim of this project is to help inform the direction of Ubiquitous Computing 
   #### _Python Script (not required):_
   - All dependencies included in the setup.py provided
 
-### Hardware Requirements:
+## Hardware Requirements:
   #### _Minimum:_
   - Arduino Uno R3+
   - AdaFruit NFC Shield in I2C mode (Other PN532-based shields might also work)
