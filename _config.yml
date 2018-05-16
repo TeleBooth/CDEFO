@@ -7,5 +7,7 @@ github_username:  TeleBooth
 
 # Build settings
 include: ['_pages']
+category-list: [build-log, tutorial, documentation]
+
 kramdown:
     input: GFM
