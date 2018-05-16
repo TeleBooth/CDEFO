@@ -8,7 +8,7 @@ Once the summer hits, any large commits to the project will be accompanied by a 
 <ul>
   {% for post in site.posts %}
     <li>
-      <a href="{{ post.url }}">{{ post.title }}</a>
+      <a href="{{site.baseurl}}{{ post.url }}">{{ post.title }}</a>
       {{ post.excerpt }}
     </li>
   {% endfor %}
