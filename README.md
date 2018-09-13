@@ -2,6 +2,8 @@
 
 The aim of this project is to help inform the direction of Ubiquitous Computing by providing the tools to create an UbiComp Environment in which NFC embedded objects control the flow of the room in a free-form, artistic manner.
 
+The website is available through [this link!](https://telebooth.github.io/CDEFO/)
+
 ## Software Dependencies:
   #### _Arduino Libraries Required:_
   - [don/NDEF NFC Mifare Tag Library](https://github.com/don/NDEF)
