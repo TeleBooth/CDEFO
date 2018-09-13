@@ -9,7 +9,7 @@ but also pose questions about how we interact with computers and objects.
 
 Over the semester that I worked on it, CDEFO existed in two forms:
 - As an art installation that was presented during the DCC Capstone fair.
-- And, now, as an easily-implementable, well-documented software suite that will be is available through this website.
+- And, now, as an easily-implementable, well-documented software suite that is available through this website.
 
 
 My hope is that CDEFO will lead to reflection about the future of PvC as a form of Human Computer Interaction (HCI),
