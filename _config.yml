@@ -7,10 +7,10 @@ github_username:  TeleBooth
 
 # Build settings
 baseurl: /CDEFO
-include: ['_pages', '_assets']
+include: ['_plugins', '_pages', '_assets']
 category-list: [build-log, tutorial, documentation]
 
-plugins:
-    - jekyll-paginate-v2
+safe: false
+
 kramdown:
     input: GFM
