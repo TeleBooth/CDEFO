@@ -4,11 +4,13 @@ title: Build Log
 permalink: /log/
 ---
 
-Will host all of the research journals I made over the semester.
+These are the research journals that I turned in to my Capstone Advisor every week during the semester.
 <ul>
-  {% for page in site.pages %}
-	{% if page.category == 'build-log' %}
-	  <li><a href="{{site.baseurl}}{{ page.url }}">{{ page.title }}</a></li>
-	{% endif %}   <!-- cat-match-p -->
-  {% endfor %}  <!-- page -->
+	{% for file in site.static_files %}
+			{% if file.extname == ".pdf" and file.basename contains "Research Journal"%}
+				<li>
+					<a href="{{site.baseurl}}{{ file.path }}"> {{file.basename}} </a>
+				</li>
+			{% endif %}
+	{% endfor %}
 </ul>

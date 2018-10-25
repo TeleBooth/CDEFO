@@ -10,5 +10,7 @@ baseurl: /CDEFO
 include: ['_pages', '_assets']
 category-list: [build-log, tutorial, documentation]
 
+plugins:
+    - jekyll-paginate-v2
 kramdown:
     input: GFM

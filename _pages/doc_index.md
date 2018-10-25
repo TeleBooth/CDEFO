@@ -15,3 +15,7 @@ and how to write your own driver sketch.
 	{% endif %}   <!-- cat-match-p -->
   {% endfor %}  <!-- page -->
 </ul>
+
+This is the final proposal that I turned in at the beginning of the spring semester, and that I worked on over winter break
+
+<a href="{{site.baseurl}}/_assets/pdfs/Booth_Final_Proposal.pdf"> Final Proposal </a>

@@ -1,6 +1,15 @@
 ---
 layout: default
 ---
+{% if page.next and page.next.categories contains "blog" %}
+
+  <a href="{{ page.next.url }}">Next Post</a>
+
+{% else if page.previous and page.previous.categories contains "blog" %}
+
+  <a href="{{ page.previous.url }}">Previous Post</a>
+
+{% endif %}
 
 <h2>{{ page.title }}</h2>
    
