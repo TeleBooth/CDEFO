@@ -40,6 +40,3 @@ The website is available through [this link!](https://telebooth.github.io/CDEFO/
 - Spotipy for music playback
 - Winsound for alternate audio playback
 - VLC for video bindings
-
-### Documentation:
-Documentation, as well as in the top bar, can be found through this link.
