@@ -41,6 +41,14 @@ TestResult.xml
 
 # Jekyll
 _site/
+CDEFO_c++/
+CDEFO_Driver/
+CDEFO_driver_static/
+CDEFO_python/
+CDEFO_write/
+CDEFO_write_static/
+John_Fitzell/
+setup.py
 dlldata.c
 
 # DNX
