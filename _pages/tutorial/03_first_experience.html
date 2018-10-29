@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Writing Your First Experience | CDEFO</title>
+<meta name="generator" content="Jekyll v3.8.4" />
+<meta property="og:title" content="Writing Your First Experience" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="The Premiere Emotional UbiComp Emulator" />
+<meta property="og:description" content="The Premiere Emotional UbiComp Emulator" />
+<link rel="canonical" href="http://localhost:4000/CDEFO/_pages/tutorial/03_first_experience.html" />
+<meta property="og:url" content="http://localhost:4000/CDEFO/_pages/tutorial/03_first_experience.html" />
+<meta property="og:site_name" content="CDEFO" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/CDEFO/_pages/tutorial/03_first_experience.html","headline":"Writing Your First Experience","description":"The Premiere Emotional UbiComp Emulator","@type":"WebPage","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link rel="stylesheet" href="/CDEFO/assets/css/style.css?v=">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">CDEFO</h1>
+      <h2 class="project-tagline">The Premiere Emotional UbiComp Emulator</h2>
+      	<a href="/CDEFO/" class="btn">Home</a>
+		<a href="/CDEFO/about/" class="btn">About</a>
+		<a href="/CDEFO/doc/" class="btn">Docs</a>
+		<a href="/CDEFO/tut/" class="btn">Tutorial</a>
+		<a href="/CDEFO/log/" class="btn">Build Log</a>
+	  
+	  <a href="/CDEFO/blog/" class="btn">Blog</a>
+      
+    </section>
+
+    <section class="main-content">
+      <h1>Writing Your First Experience</h1>
+ 
+    <p>Loading up the <code class="highlighter-rouge">write_static.ino</code> into the Arduino IDE, we see a fairly short and sweet Arduino script.</p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="cp">#include &lt;CDEFO.h&gt;
+</span>
+<span class="n">PN532_I2C</span> <span class="n">pn532_i2c</span><span class="p">(</span><span class="n">Wire</span><span class="p">);</span>
+<span class="n">NfcAdapter</span> <span class="n">nfc</span> <span class="o">=</span> <span class="n">NfcAdapter</span><span class="p">(</span><span class="n">pn532_i2c</span><span class="p">);</span>  <span class="c1">// Indicates the Shield you are using</span>
+
+                  
+<span class="kt">void</span> <span class="nf">setup</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="mi">9600</span><span class="p">);</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"NFC Tag Writer"</span><span class="p">);</span> <span class="c1">// Serial Monitor Message</span>
+    <span class="n">nfc</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">Place an NFC Tag that you want to Record these Messages on!"</span><span class="p">);</span> <span class="c1">// Command for the Serial Monitor</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">nfc</span><span class="p">.</span><span class="n">tagPresent</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">NdefMessage</span> <span class="n">message</span> <span class="o">=</span> <span class="n">NdefMessage</span><span class="p">();</span>
+        <span class="n">message</span><span class="p">.</span><span class="n">addTextRecord</span><span class="p">(</span><span class="s">":S:Rope Foo"</span><span class="p">);</span>
+        <span class="n">message</span><span class="p">.</span><span class="n">addTextRecord</span><span class="p">(</span><span class="s">"G:L:cRGBRGB;bBGY;yRGB;tRGB;"</span><span class="p">);</span>
+        <span class="n">message</span><span class="p">.</span><span class="n">addTextRecord</span><span class="p">(</span><span class="s">":P:Foo"</span><span class="p">);</span>
+        <span class="n">message</span><span class="p">.</span><span class="n">addTextRecord</span><span class="p">(</span><span class="s">":Stop:"</span><span class="p">);</span>
+        <span class="n">boolean</span> <span class="n">success</span> <span class="o">=</span> <span class="n">nfc</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">success</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Good Job, the experience is now ready!"</span><span class="p">);</span> <span class="c1">// if it works you will see this message </span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Write failed"</span><span class="p">);</span> <span class="c1">// If the the rewrite failed you will see this message</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">delay</span><span class="p">(</span><span class="mi">5000</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>What happens is that the sketch creates a <code class="highlighter-rouge">PN532_I2C</code> object, which is the type of NFC reader chipset that I was using, 
+and then we have an <code class="highlighter-rouge">NfcAdapter</code> object, which the PN532 is passed so that it can be used to write messages to our NFC tags.</p>
+
+<p>It does this after checking <code class="highlighter-rouge">if(nfc.tagPresent())</code>, and if the tag is present, it will go and write five <code class="highlighter-rouge">TextRecords</code> in a row,
+with the last Record being a <code class="highlighter-rouge">":Stop:"</code>. It’s worth emphasizing here that <strong>all user experiences must end with this <code class="highlighter-rouge">":Stop:"</code> tag.</strong>
+Otherwise they will not work properly and you will be sad and confused.</p>
+
+<p>Now, the first command to note is the <code class="highlighter-rouge">":S:Rope Foo"</code>. When the driver detects this, it calls the library function <code class="highlighter-rouge">cdefo::play_music()</code> which prints that same string over Serial.
+Ideally, on the other end of the Serial Port, there’s the CDEFO Python script running, and it will filter that Serial input process it such that it will play the song <code class="highlighter-rouge">Rope</code> by the <code class="highlighter-rouge">Foo Fighters</code> in a Spotify webplayer.
+This is outside o0f the scope of this particular tutorial, but it’s worth keeping in mind that this whole platform extends passed the Arduino.</p>
+
+<p>The second command <code class="highlighter-rouge">"G:L:cR;bG;yB;tRGB;"</code> which is just a really long “Mood Lighting” script. 
+The full syntax with more video examples for this will be covered in the documentation, so
+right now I’m just going to go through this and guide you through writing your own lighting script.</p>
+
+<p>The first letter <code class="highlighter-rouge">G</code>, signifies the default color of the Mood Lighting, the color that it uses when it “starts up”. Which is that little delayed fade-in propagation type pattern.</p>
+
+<p>The <code class="highlighter-rouge">:L:</code> signifies to the Arduino that it is running the “Mood Lighting” commands, this is technically the actuall command call, since all of the commands in CDEFO are formatted like <code class="highlighter-rouge">:{id}:</code></p>
+
+<p>After the <code class="highlighter-rouge">:L:</code>, the lower case letter represent patterns, and the upper case letters represent colors.
+Each semicolon block represents a “mini script” and each script will be run in the exact sequence they are written.</p>
+
+<p>Breaking down this actual command, we have <code class="highlighter-rouge">cR</code>, which calls the <code class="highlighter-rouge">chase</code> pattern with the color <code class="highlighter-rouge">Red</code>, 
+<code class="highlighter-rouge">bG</code> calls the <code class="highlighter-rouge">breathe</code> pattern with the color <code class="highlighter-rouge">Green</code>, <code class="highlighter-rouge">yB</code> calls the <code class="highlighter-rouge">cylon</code> pattern with the color <code class="highlighter-rouge">Blue</code>, 
+and <code class="highlighter-rouge">tRGB</code> calls the <code class="highlighter-rouge">twinkle</code> pattern with the colors <code class="highlighter-rouge">Red</code>, <code class="highlighter-rouge">Green</code>, and <code class="highlighter-rouge">Blue</code>.</p>
+
+<p>Running these commands all together with the included driver sketch looks something like this. 
+Of course, this only works if you have setup an LED strip, which it is assumed you have if you’ve made it this far,
+and have read the Adafruit wiring guide that I linked in the <code class="highlighter-rouge">Getting Started</code> page.
+<!-- Feel free to change the width and height to your desired video size. --></p>
+
+<div class="embed-container">
+  <iframe width="700" height="480" src="https://www.youtube.com/embed/EoOCdzWXQj4" frameborder="0" allowfullscreen=""></iframe>
+</div>
+
+<p>The last command <code class="highlighter-rouge">:P:Foo</code>, like <code class="highlighter-rouge">:S:Rope Foo</code>, is used to control the Python Script primarily, 
+and it includes special bindings I used for demonstrations that aren’t worth discussing here.
+We can discuss them in the next part of the tutorial, the Python Script!</p>
+
+
+
+
+
+
+
+
+
+
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+		<span class="site-footer-contact"><a href="/CDEFO/contact">Contact Page</a>.</span>
+	  </footer>
+    </section>
+
+    
+  </body>
+</html>

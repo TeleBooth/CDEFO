@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>The CDEFO Library and Driver | CDEFO</title>
+<meta name="generator" content="Jekyll v3.8.4" />
+<meta property="og:title" content="The CDEFO Library and Driver" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="The Premiere Emotional UbiComp Emulator" />
+<meta property="og:description" content="The Premiere Emotional UbiComp Emulator" />
+<link rel="canonical" href="http://localhost:4000/CDEFO/_pages/tutorial/02_library_driver.html" />
+<meta property="og:url" content="http://localhost:4000/CDEFO/_pages/tutorial/02_library_driver.html" />
+<meta property="og:site_name" content="CDEFO" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/CDEFO/_pages/tutorial/02_library_driver.html","headline":"The CDEFO Library and Driver","description":"The Premiere Emotional UbiComp Emulator","@type":"WebPage","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link rel="stylesheet" href="/CDEFO/assets/css/style.css?v=">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">CDEFO</h1>
+      <h2 class="project-tagline">The Premiere Emotional UbiComp Emulator</h2>
+      	<a href="/CDEFO/" class="btn">Home</a>
+		<a href="/CDEFO/about/" class="btn">About</a>
+		<a href="/CDEFO/doc/" class="btn">Docs</a>
+		<a href="/CDEFO/tut/" class="btn">Tutorial</a>
+		<a href="/CDEFO/log/" class="btn">Build Log</a>
+	  
+	  <a href="/CDEFO/blog/" class="btn">Blog</a>
+      
+    </section>
+
+    <section class="main-content">
+      <h1>The CDEFO Library and Driver</h1>
+ 
+    <h2 id="what-are-these">What Are These?</h2>
+<p>At the very minimum, what you need to get started with CDEFO is an Arduino Uno with an NFC reader. 
+From there, you should download the archive available on my github, extract the files to a working directory, 
+and move the <code class="highlighter-rouge">CDEFO.h</code> and <code class="highlighter-rouge">CDEFO.cpp</code> files to their own folder in your <code class="highlighter-rouge">...\Arduino\libraries\</code> directory.</p>
+
+<p>Ignore the Python Script for now…</p>
+
+<p>For starters, we should cover the design of the library, and how the included driver sketch works.</p>
+
+<p>The CDEFO class can simply be seen as a wrapper for several other Arduino Libraries, primarily the <a href="https://github.com/don/NDEF">don/NDEF</a> and <a href="https://github.com/adafruit/Adafruit_NeoPixel">Adafruit_NeoPixel</a> libraries.</p>
+
+<p>The purpose of this was so that I could abstract all of the various commands and loops that need to be used to run those libraries correctly.</p>
+
+<p>With my library, the code to read the records from an NFC tag goes from…</p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">if</span> <span class="p">(</span><span class="n">tag</span><span class="o">-&gt;</span><span class="n">hasNdefMessage</span><span class="p">())</span>
+	<span class="p">{</span>
+		<span class="n">NdefMessage</span> <span class="n">message</span> <span class="o">=</span> <span class="n">tag</span><span class="o">-&gt;</span><span class="n">getNdefMessage</span><span class="p">();</span>
+		<span class="c1">// If you have more than 1 Message then it wil cycle through them</span>
+		<span class="kt">int</span> <span class="n">recordCount</span> <span class="o">=</span> <span class="n">message</span><span class="p">.</span><span class="n">getRecordCount</span><span class="p">();</span>
+		<span class="o">*</span><span class="n">depth</span> <span class="o">=</span> <span class="n">recordCount</span><span class="p">;</span>
+		<span class="o">*</span><span class="n">payloads</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">**</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="o">*</span> <span class="n">recordCount</span><span class="p">);</span>
+
+		<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">recordCount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="n">NdefRecord</span> <span class="n">record</span> <span class="o">=</span> <span class="n">message</span><span class="p">.</span><span class="n">getRecord</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+
+			<span class="kt">int</span> <span class="n">payloadLength</span> <span class="o">=</span> <span class="n">record</span><span class="p">.</span><span class="n">getPayloadLength</span><span class="p">();</span>
+			<span class="n">byte</span> <span class="n">payload</span><span class="p">[</span><span class="n">payloadLength</span><span class="p">];</span>
+			<span class="n">record</span><span class="p">.</span><span class="n">getPayload</span><span class="p">(</span><span class="n">payload</span><span class="p">);</span>
+
+			<span class="p">(</span><span class="o">*</span><span class="n">payloads</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">)</span> <span class="o">*</span> <span class="n">payloadLength</span> <span class="o">-</span> <span class="mi">2</span><span class="p">);</span>
+			<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="n">c</span> <span class="o">&lt;</span> <span class="n">payloadLength</span><span class="p">;</span> <span class="n">c</span><span class="o">++</span><span class="p">)</span>
+			<span class="p">{</span>
+				<span class="p">(</span><span class="o">*</span><span class="n">payloads</span><span class="p">)[</span><span class="n">i</span><span class="p">][</span><span class="n">c</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">payload</span><span class="p">[</span><span class="n">c</span><span class="p">];</span>
+			<span class="p">}</span>
+			<span class="p">(</span><span class="o">*</span><span class="n">payloads</span><span class="p">)[</span><span class="n">i</span><span class="p">][</span><span class="n">payloadLength</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+		<span class="p">}</span>
+	<span class="p">}</span></code></pre></figure>
+
+<p>to…</p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="n">cdefo</span><span class="o">::</span><span class="n">read_ndef</span><span class="p">(</span><span class="n">NfcTag</span><span class="o">*</span> <span class="n">tag</span><span class="p">,</span> <span class="kt">char</span><span class="o">***</span> <span class="n">payloads</span><span class="p">,</span> <span class="kt">int</span><span class="o">*</span> <span class="n">depth</span><span class="p">)</span></code></pre></figure>
+
+<p>with that triple character pointer representing a pointer to a 2D character array that we dynamiclly allocate to store all the “payloads”.</p>
+
+<p>Despite the fact that I tried to abstract as many functions of dependecnies as I could, it unfortunately isn’t plug and play.
+You will need to provide a driver sketch that can call the proper CDEFO functions based off of what was read from <code class="highlighter-rouge">cdefo::read_ndef()</code>.</p>
+
+<p>Good news for you, though, is that I provide a driver sketch that works right out of the box. Bad news, though, this driver sketch is only set up to drive the specific hardware setup that I had, with 2 LEDs strips and a microphone,
+It’s the <code class="highlighter-rouge">driver_static.ino</code> file in the directory of the same name, and simply ignoring the components that you don’t use has little demonstrable effec in my experience.
+I will provide documentation on writing the driver as I add more functionality over the summer,
+but those who are extra observant will notice that the driver is essentially a <code class="highlighter-rouge">for-loop</code> with several <code class="highlighter-rouge">if-else</code> statements 
+that represent each possible command that the library recognizes.</p>
+
+<p>The first thing you will notice about the driver are the <code class="highlighter-rouge">#include</code>’s, and that there is one that hasn’t been talked about yet, called <code class="highlighter-rouge">LEDTimedAction.h</code></p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="cp">#include &lt;CDEFO.h&gt;
+#include &lt;LEDTimedAction.h&gt;
+</span>
+<span class="cp">#define MOOD_PIN  6
+#define MUSIC_PIN  12
+#define AUDIO_PIN A0  //Pin for the envelope of the sound detector</span></code></pre></figure>
+
+<p>This is a simple library that I heavily modified from its original form which allows for the use of the functions that take arguments instead of noargs function pointers.
+ so that I can run multiple LED strips concurrently. This is, in my opinion, one of the crowning achievments of this project, as I’ve essentially multithreding an Arduino with it.</p>
+
+<p>## Using Them:
+ Now that you have the Library and the Sketch in a work directory andyou understand a little bit about how they both work. Let’s upload the provided <code class="highlighter-rouge">write_static.ino</code> sketch, open the serial console, and place an NFC tag on it.</p>
+
+<p>Once it tells you the <code class="highlighter-rouge">"Good Job, the experience is now ready!"</code> upload the <code class="highlighter-rouge">driver_static.ino</code> and look at the console. The first thing you’ll notice are the weird lines like <code class="highlighter-rouge">:S:Rope Foo</code> and <code class="highlighter-rouge">G:L:yRGBPT;cRGBPT;</code>.</p>
+
+<p>Well, those are the commands that the CDEFO library uses to run the user experiences, which I will now teach you how to use.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+      <footer class="site-footer">
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+		<span class="site-footer-contact"><a href="/CDEFO/contact">Contact Page</a>.</span>
+	  </footer>
+    </section>
+
+    
+  </body>
+</html>
