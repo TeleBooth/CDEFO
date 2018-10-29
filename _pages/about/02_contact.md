@@ -4,4 +4,4 @@ title: Contact
 permalink: /contact/
 ---
 
-My e-mail is [booh212092@yahoo.com](mailto:booth212092@yahoo.com).
+My e-mail is [booth212092@gmail.com](mailto:booth212092@gmail.com).
