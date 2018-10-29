@@ -51,6 +51,8 @@ Gemfile
 Gemfile.lock
 index.md
 dlldata.c
+CDEFO_write/
+CDEFO_driver/
 
 # DNX
 project.lock.json
