@@ -40,7 +40,6 @@ TestResult.xml
 [Rr]eleasePS/
 
 # Jekyll
-_site/
 CDEFO_c++/
 CDEFO_Driver/
 CDEFO_driver_static/
