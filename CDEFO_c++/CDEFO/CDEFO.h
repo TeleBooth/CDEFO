@@ -9,17 +9,17 @@
 
 #define MOOD_PIN  6
 #define MUSIC_PIN  12
-#define MOOD_LEDS 16
-#define MUSIC_LEDS 15  //Change this to the number of LEDs in your strand.
+#define MOOD_LEDS 86
+#define MUSIC_LEDS 56  //Change this to the number of LEDs in your strand.
 #define AUDIO_PIN A0  //Pin for the envelope of the sound detector
 
-#define PULSE_FADE .85
+#define PULSE_FADE .90
 #define CHASE_INTERVAL 30
 #define BREATHE_INTERVAL 75
 #define BREATHE_SCALE 1.08
 #define FADEIN_SCALE 1.07
 
-#define RISE_RATE     0.13    //(0 to 1) higher values mean livelier display
+#define RISE_RATE     0.30    //(0 to 1) higher values mean livelier display
 #define FALL_RATE 0.04 //(0 to 1) higher values mean livelier display
 
 #define LED_HALF  MUSIC_LEDS/2

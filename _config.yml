@@ -1,1 +1,16 @@
-theme: jekyll-theme-time-machine
+theme: jekyll-theme-cayman
+name: Jeremy Booth
+title: CDEFO
+description: Computer Driven Experiences with Familiar Objects
+email: booth212092@gmail.com
+github_username:  TeleBooth
+
+# Build settings
+baseurl: /CDEFO
+include: ['_plugins', '_pages', '_assets']
+category-list: [build-log, tutorial, documentation]
+
+safe: false
+
+kramdown:
+    input: GFM
