@@ -39,15 +39,15 @@ void loop() {
 {% endhighlight %}
 
 What happens is that the sketch creates a `PN532_I2C` object, which is the type of NFC reader chipset that I was using, 
-and then we have an `NfcAdapter` object, which the PN532 is passed so that it can be used to write messages to our NFC tags.
+and then we have an `NfcAdapter` object, which the PN532 is passed to so that it can be used to write messages to our NFC tags.
 
 It does this after checking `if(nfc.tagPresent())`, and if the tag is present, it will go and write five `TextRecords` in a row,
 with the last Record being a `":Stop:"`. It's worth emphasizing here that **all user experiences must end with this `":Stop:"` tag.**
 Otherwise they will not work properly and you will be sad and confused.
 
 Now, the first command to note is the `":S:Rope Foo"`. When the driver detects this, it calls the library function `cdefo::play_music()` which prints that same string over Serial.
-Ideally, on the other end of the Serial Port, there's the CDEFO Python script running, and it will filter that Serial input process it such that it will play the song `Rope` by the `Foo Fighters` in a Spotify webplayer.
-This is outside o0f the scope of this particular tutorial, but it's worth keeping in mind that this whole platform extends passed the Arduino.
+Ideally, on the other end of the Serial Port, there's the CDEFO Python script running, and it will filter that Serial input and process it such that it will play the song `Rope` by the `Foo Fighters` in a Spotify webplayer.
+This is outside of the scope of this particular tutorial, but it's worth keeping in mind that this whole platform extends passed the Arduino.
 
 The second command `"G:L:cR;bG;yB;tRGB;"` which is just a really long "Mood Lighting" script. 
 The full syntax with more video examples for this will be covered in the documentation, so
