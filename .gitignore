@@ -55,6 +55,7 @@ dlldata.c
 CDEFO_write/
 CDEFO_driver/
 John_Fitzell/
+setup.py
 
 # DNX
 project.lock.json
