@@ -40,18 +40,9 @@ TestResult.xml
 [Rr]eleasePS/
 
 # Jekyll
-.sass-cache/
+
 _site/
-_assets/
-_includes/
-_layouts/
-_pages/
-_plugins/
-_posts/
-_config.yml
-Gemfile
-Gemfile.lock
-index.md
+
 CDEFO_c++/
 CDEFO_Driver/
 CDEFO_driver_static/
