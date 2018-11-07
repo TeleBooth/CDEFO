@@ -4,7 +4,7 @@
 #include <PN532_I2C.h>
 #include <PN532.h>   // The following files are included in the libraries Installed
 #include <NfcAdapter.h>
-#include <LEDTimedAction.h>
+#include <LEDTimedAction.h> //Rewritten "Protothreading" library
 
 #define MOOD_PIN  6
 #define MUSIC_PIN  12
@@ -92,10 +92,10 @@ void loop()
         {
           nfcTimerCurr = millis();
           //cdefo::drive_lights(&mood, mini, &light_number);
-          eq_driver.check();
-          mood_driver.check();
+          eq_driver.check(); //THE MULTITHREADING HAPPENS IN THIS LOOP AND CONTINUES UNTIL THE NFC TAG IS REMOVED
+          mood_driver.check(); //BOTH OF THESE LIGHTING SCRIPTS ARE BEING RUN SIMULTANEOUSLY VIA "PROTOTHREADING"
           //cdefo::drive_eq(&music, &eq);
-            if(led.finish2){
+            if(led.finish2){ //CAN ALSO CONCURRENTLY CHECK THE STATUS OF THE NFC TAG
               if(!nfc.tagPresent(10)){
                 j = 1;
               }
@@ -162,4 +162,3 @@ void loop()
   Serial.print("place a tag.\n");
   cdefo::start_lights(&mood, &led.start_col);
 }
-
