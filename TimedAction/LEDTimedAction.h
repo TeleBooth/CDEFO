@@ -1,3 +1,6 @@
+/* Originally written by ALexander Brevig, but heavilly modified for the purposes of this project,
+included support for passing in function data through structures */
+
 #ifndef LEDTimedAction_H
 #define LEDTimedAction_H
 
