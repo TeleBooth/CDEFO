@@ -8,6 +8,7 @@ The website is available through [this link!](https://telebooth.github.io/CDEFO/
   #### _Arduino Libraries Required:_
   - [don/NDEF NFC Mifare Tag Library](https://github.com/don/NDEF)
   - [AdaFruit NeoPixel Library](https://github.com/adafruit/Adafruit_NeoPixel)
+  - A modified version of Alexander Brevig's TimedAction Library that I have provided
 
   #### _Python Script (not required):_
   - All dependencies included in the setup.py provided
